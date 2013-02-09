@@ -481,8 +481,22 @@ public class Grupp3Labb1
      * @return splitData according to the current setting and type of attribute
      */
     private Instances[] getSplitData(Instances data, Attribute att) {
-        //if(m_UseBinarySplit // TODO: add binarysplit - johan
-        return splitData(data, att);
+        if(m_UseBinarySplits)
+            return binarySplitData(data, att);
+        else
+            return splitData(data, att);
+    }
+
+    /**
+     * Splits a dataset binarily, according to the values of a nominal attribute.
+     * TODO: Work in progress - Johan
+     *
+     * @param data the data that is to be split
+     * @param att the attribute to be used for splitting
+     * @return Best split produced
+     */
+    private Instances[] binarySplitData(Instances data, Attribute att) {
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     /**
