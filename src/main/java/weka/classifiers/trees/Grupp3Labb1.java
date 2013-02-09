@@ -326,7 +326,7 @@ public class Grupp3Labb1
      * @return the most common value
      */
     private double getMostCommonValue(Instance instance) {
-        double mostCommonValue = 0; // TODO: Is this correct?
+        double mostCommonValue = 0;
         int count = 0;
 
         for(int i = 0; i < instance.numAttributes(); i++) {
@@ -757,10 +757,9 @@ public class Grupp3Labb1
             return "Grupp3Labb1: No model built yet.";
         }
 
-        return "Grupp3Labb1\n------------------\n" + toString(0);
-        /*return "Labb1\n------------------\n" + toString(0)
+        return "Grupp3Labb1\n------------------\n" + toString(0)
                 + "\n\nSize of the tree: " + (int)measureTreeSize() + "\n\n"
-                + "Number of leaves: " + (int)measureNumLeaves();*/
+                + "Number of leaves: " + (int)measureNumLeaves();
     }
 
     /**
@@ -1044,6 +1043,6 @@ public class Grupp3Labb1
      * @return return true if node is a leaf
      */
     private boolean isLeaf() {
-        return(m_Successors == null | m_Successors.length == 0);
+        return(m_Successors == null || m_Successors.length == 0);
     }
 }
