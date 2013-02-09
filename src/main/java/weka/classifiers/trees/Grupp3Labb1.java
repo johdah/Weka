@@ -240,7 +240,7 @@ public class Grupp3Labb1
         if (Utils.eq(bestAttr[m_Attribute.index()], 0)) {
             makeLeaf(data);
         } else {
-            Instances[] splitData = splitData(data, m_Attribute);
+            Instances[] splitData = getSplitData(data, m_Attribute);
             m_Successors = new Grupp3Labb1[m_Attribute.numValues()];
             for (int j = 0; j < m_Attribute.numValues(); j++) {
                 m_Successors[j] = new Grupp3Labb1();
@@ -432,7 +432,7 @@ public class Grupp3Labb1
     private double computeInfoGain(Instances data, Attribute att)
             throws Exception {
         double infoGain = computeEntropy(data);
-        Instances[] splitData = splitData(data, att);
+        Instances[] splitData = getSplitData(data, att);
         for (int j = 0; j < att.numValues(); j++) {
             if (splitData[j].numInstances() > 0) {
                 infoGain -= ((double) splitData[j].numInstances()
@@ -465,6 +465,24 @@ public class Grupp3Labb1
         }
         entropy /= (double) data.numInstances();
         return entropy + Utils.log2(data.numInstances());
+    }
+
+    /**
+     * @param data instances
+     * @return splitData according to the current setting and type of attribute
+     */
+    private Instances[] getSplitData(Instances data) {
+        return getSplitData(data, m_Attribute);
+    }
+
+    /**
+     * @param data instances
+     * @param att attribute
+     * @return splitData according to the current setting and type of attribute
+     */
+    private Instances[] getSplitData(Instances data, Attribute att) {
+        //if(m_UseBinarySplit // TODO: add binarysplit - johan
+        return splitData(data, att);
     }
 
     /**
