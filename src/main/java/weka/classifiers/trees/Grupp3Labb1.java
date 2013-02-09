@@ -22,11 +22,11 @@
 package weka.classifiers.trees;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Vector;
 
 import weka.classifiers.AbstractClassifier;
-import weka.classifiers.Sourcable;
 import weka.core.AdditionalMeasureProducer;
 import weka.core.Attribute;
 import weka.core.Capabilities;
@@ -87,8 +87,8 @@ import weka.core.TechnicalInformation.Type;
  * 
 <!-- options-end -->
  *
- * @author 
- * @version $Revision:  $ 
+ * @author Johan, Daniel, Fredrik, Andreas
+ * @version $Revision:  $
  */
 public class Grupp3Labb1
         extends AbstractClassifier
@@ -128,7 +128,6 @@ public class Grupp3Labb1
      * @return a description suitable for the GUI.
      */
     public String globalInfo() {
-
         return "Class for constructing an unpruned decision tree based on the ID3 "
                 + "algorithm. Can only deal with nominal attributes. No missing values "
                 + "allowed. Empty leaves may result in unclassified instances. For more "
@@ -147,15 +146,15 @@ public class Grupp3Labb1
         TechnicalInformation result;
 
         result = new TechnicalInformation(Type.UNPUBLISHED);
-        result.setValue(Field.AUTHOR, "J. Dahlberg"); //Gruppmedlemmars namn
         result.setValue(Field.AUTHOR, "A. Westberg");
         result.setValue(Field.AUTHOR, "D. Jansson");
         result.setValue(Field.AUTHOR, "F. Törnvall");
+        result.setValue(Field.AUTHOR, "J. Dahlberg");
         result.setValue(Field.YEAR, "2013");
         result.setValue(Field.TYPE, "Laboration");
         result.setValue(Field.SCHOOL, "University of Borås");
         result.setValue(Field.NOTE, "Egna kommentarer");
-        result.setValue(Field.NUMBER, "3"); //Ange gruppens nummer här
+        result.setValue(Field.NUMBER, "3");
 
         return result;
     }
@@ -191,7 +190,6 @@ public class Grupp3Labb1
      * @exception Exception if classifier can't be built successfully
      */
     public void buildClassifier(Instances data) throws Exception {
-
         // can classifier handle the data?
         getCapabilities().testWithFail(data);
 
@@ -214,8 +212,6 @@ public class Grupp3Labb1
 
     /**
      * Method for building an Id3 tree.
-     *
-     * TODO: Skall utökas så att labbkraven uppfylls.
      *
      * @param data the training data
      * @exception Exception if decision tree can't be built successfully
@@ -254,8 +250,9 @@ public class Grupp3Labb1
 
     /**
      * Create leaf
-     * @author johdah <info@johandahlberg.com>
-     * @param data
+     * - Refactored from makeTree
+     *
+     * @param data the leaf instance
      */
     private void makeLeaf(Instances data) {
         m_Attribute = null;
@@ -285,8 +282,8 @@ public class Grupp3Labb1
 
         if (instance.hasMissingValue()) {
             return handleMissingValue(instance);
-            //throw new NoSupportForMissingValuesException("Grupp3Labb1: Trädet skall kunna hantera saknade värden!");
         }
+
         if (m_Attribute == null) {
             return m_ClassValue;
         } else {
@@ -303,10 +300,8 @@ public class Grupp3Labb1
      */
     public double[] distributionForInstance(Instance instance)
             throws NoSupportForMissingValuesException {
-
         if (instance.hasMissingValue()) {
             instance.setClassValue(handleMissingValue(instance));
-            //throw new NoSupportForMissingValuesException("Labb1: Trädet skall kunna hantera saknade värden!");
         }
         if (m_Attribute == null) {
             return m_Distribution;
@@ -317,19 +312,17 @@ public class Grupp3Labb1
 
     /**
      * Handle missing value
-     * @author datadanne
-     * @param instance
+     * @param instance current instance
      * @return
      */
     private double handleMissingValue(Instance instance) {
-        //return m_MajorityClass;
+        //return m_MajorityClass; // Could be used
         return getMostCommonValue(instance);
     }
 
     /**
      * Get the most common value
-     * @author datadanne
-     * @param instance
+     * @param instance current instance
      * @return
      */
     private double getMostCommonValue(Instance instance) {
@@ -345,7 +338,6 @@ public class Grupp3Labb1
                 comparedValue = instance.value(j);
                 if(currentValue == comparedValue)
                     currentCount++;
-
             }
             if(currentCount > count){
                 count = currentCount;
@@ -366,17 +358,16 @@ public class Grupp3Labb1
 
     /**
      * TODO: Work in progress
-     * @author datadanne
-     * @param data
-     * @return
+     * @param data an instance array
+     * @return true if most of the values are the same
      */
     boolean isMostOfTheValuesSame(Instances[] data){
         ArrayList instances = new ArrayList();
 
-        for(int i = 0; i < data.length; i++){
-            for(int j = 0; j < data[i].numAttributes(); j++){
-                for(int k = 0; k <data[i].attribute(j).numValues(); k++){
-                    instances.add(data[i].attribute(k).value(k));
+        for (Instances aData : data) {
+            for (int j = 0; j < aData.numAttributes(); j++) {
+                for (int k = 0; k < aData.attribute(j).numValues(); k++) {
+                    instances.add(aData.attribute(k).value(k));
                 }
             }
         }
@@ -394,10 +385,10 @@ public class Grupp3Labb1
     private double computeAttributeValue(Instances data, Attribute att) throws Exception {
         switch (m_SplitMethod) {
             case 0: //GainRatio
-                double infoGain = computeInfoGain(data, att);
+                //double infoGain = computeInfoGain(data, att);
 //                double splitInfo = computeSplitInfo(data, att);
 //                return infoGain / splitInfo;                
-                return infoGain;                
+                return computeInfoGain(data, att);
             case 1: //GiniIndex
                 return ComputeGiniIndex(data, att);
         }
@@ -405,26 +396,28 @@ public class Grupp3Labb1
     }
 
     /**
-     * kommentera
+     * TODO: Comment
      *
      * @param data the data for which info gain is to be computed
      * @param att the attribute
-     * @return kommentera
+     * @return TODO: Comment
      * @throws Exception if computation fails
      */
-    private double ComputeGiniIndex(Instances data, Attribute att) {
+    private double ComputeGiniIndex(Instances data, Attribute att)
+            throws Exception {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     /**
-     * kommentera
+     * TODO: Comment
      *
      * @param data the data for which info gain is to be computed
      * @param att the attribute
-     * @return kommentera
+     * @return TODO: Comment
      * @throws Exception if computation fails
      */
-    private double computeSplitInfo(Instances data, Attribute att) {
+    private double computeSplitInfo(Instances data, Attribute att)
+            throws Exception {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
@@ -438,7 +431,6 @@ public class Grupp3Labb1
      */
     private double computeInfoGain(Instances data, Attribute att)
             throws Exception {
-
         double infoGain = computeEntropy(data);
         Instances[] splitData = splitData(data, att);
         for (int j = 0; j < att.numValues(); j++) {
@@ -459,7 +451,6 @@ public class Grupp3Labb1
      * @throws Exception if computation fails
      */
     private double computeEntropy(Instances data) throws Exception {
-
         double[] classCounts = new double[data.numClasses()];
         Enumeration instEnum = data.enumerateInstances();
         while (instEnum.hasMoreElements()) {
@@ -484,18 +475,19 @@ public class Grupp3Labb1
      * @return the sets of instances produced by the split
      */
     private Instances[] splitData(Instances data, Attribute att) {
-
         Instances[] splitData = new Instances[att.numValues()];
         for (int j = 0; j < att.numValues(); j++) {
             splitData[j] = new Instances(data, data.numInstances());
         }
+
         Enumeration instEnum = data.enumerateInstances();
         while (instEnum.hasMoreElements()) {
             Instance inst = (Instance) instEnum.nextElement();
             splitData[(int) inst.value(att)].add(inst);
         }
-        for (int i = 0; i < splitData.length; i++) {
-            splitData[i].compactify();
+
+        for (Instances aSplitData : splitData) {
+            aSplitData.compactify();
         }
         return splitData;
     }
@@ -513,7 +505,6 @@ public class Grupp3Labb1
      */
     @SuppressWarnings("unchecked")
     public Enumeration listOptions() {
-
         Vector<Option> newVector = new Vector<Option>();
 
         newVector.addElement(new Option(
@@ -568,7 +559,6 @@ public class Grupp3Labb1
      * @return an array of strings suitable for passing to setOptions
      */
     public String[] getOptions() {
-
         Vector<String> result = new Vector<String>();
         String[] options;
 
@@ -580,13 +570,11 @@ public class Grupp3Labb1
         result.add("-S");
         result.add("" + getSplitMethod());
         options = super.getOptions();
-        for (int i = 0; i < options.length; i++) {
-            result.add(options[i]);
-        }
+        Collections.addAll(result, options);
 
         String[] array = new String[result.size()];
         for (int i = 0; i < result.size(); i++) {
-            array[i] = result.elementAt(i).toString();
+            array[i] = result.elementAt(i);
         }
 
         return array; // (String[]) result.toArray(new String[result.size()]);
@@ -607,7 +595,6 @@ public class Grupp3Labb1
      * @return Value of this property.
      */
     public double getMinimumLeafSize() {
-
         return m_MinimumLeafSize;
     }
 
@@ -635,7 +622,6 @@ public class Grupp3Labb1
      * @return Value of this property.
      */
     public boolean getUseBinarySplits() {
-
         return m_UseBinarySplits;
     }
 
@@ -663,7 +649,6 @@ public class Grupp3Labb1
      * @return Value of this property.
      */
     public SelectedTag getSplitMethod() {
-
         return new SelectedTag(m_SplitMethod, TAGS_SplitMethod);
     }
 
@@ -684,7 +669,6 @@ public class Grupp3Labb1
      * @return a textual description of the classifier
      */
     public String toString() {
-
         if ((m_Distribution == null) && (m_Successors == null)) {
             return "Grupp3Labb1: No model built yet.";
         }
@@ -702,13 +686,13 @@ public class Grupp3Labb1
      * @return the tree as string at the given level
      */
     private String toString(int level) {
-        StringBuffer text = new StringBuffer();
+        StringBuilder text = new StringBuilder();
 
         if (m_Attribute == null) { // isLeaf
             if (Utils.isMissingValue(m_ClassValue)) {
                 text.append(": null");
             } else {
-                text.append(": " + m_ClassAttribute.value((int) m_ClassValue)).append(leafInfo());
+                text.append(": ").append(m_ClassAttribute.value((int) m_ClassValue)).append(leafInfo());
             }
         } else {
             for (int j = 0; j < m_Attribute.numValues(); j++) {
@@ -716,7 +700,8 @@ public class Grupp3Labb1
                 for (int i = 0; i < level; i++) {
                     text.append("|  ");
                 }
-                text.append(m_Attribute.name() + " = " + m_Attribute.value(j));
+
+                text.append(m_Attribute.name()).append(" = ").append(m_Attribute.value(j));
 
                 if(m_Successors[j] != null)
                     text.append(m_Successors[j].toString(level + 1));
@@ -736,7 +721,7 @@ public class Grupp3Labb1
         while(instances.hasMoreElements()) {
             Instance inst = (Instance) instances.nextElement();
             sum++;
-            //printDebugMessage("\ninst ca: "+ inst.value(inst.classAttribute()));
+            //printDebugMessage("\nInstances ca: "+ inst.value(inst.classAttribute()));
             //printDebugMessage("Correct ca: "+ m_ClassValue);
 
             if(inst.value(inst.classAttribute()) != m_ClassValue)
@@ -767,7 +752,7 @@ public class Grupp3Labb1
         StringBuffer[] subBuffers;
 
         buffer.append("\n");
-        buffer.append("  protected static double node" + id + "(Object[] i) {\n");
+        buffer.append("  protected static double node").append(id).append("(Object[] i) {\n");
 
         // leaf?
         if (m_Attribute == null) {
@@ -775,15 +760,15 @@ public class Grupp3Labb1
             if (Double.isNaN(m_ClassValue)) {
                 buffer.append("    return Double.NaN;");
             } else {
-                buffer.append("    return " + m_ClassValue + ";");
+                buffer.append("    return ").append(m_ClassValue).append(";");
             }
             if (m_ClassAttribute != null) {
-                buffer.append(" // " + m_ClassAttribute.value((int) m_ClassValue));
+                buffer.append(" // ").append(m_ClassAttribute.value((int) m_ClassValue));
             }
             buffer.append("\n");
             buffer.append("  }\n");
         } else {
-            buffer.append("    // " + m_Attribute.name() + "\n");
+            buffer.append("    // ").append(m_Attribute.name()).append("\n");
 
             // subtree calls
             subBuffers = new StringBuffer[m_Attribute.numValues()];
@@ -795,21 +780,21 @@ public class Grupp3Labb1
                 if (i > 0) {
                     buffer.append("else ");
                 }
-                buffer.append("if (((String) i[" + m_Attribute.index() + "]).equals(\"" + m_Attribute.value(i) + "\"))\n");
-                buffer.append("      return node" + newID + "(i);\n");
+                buffer.append("if (((String) i[").append(m_Attribute.index()).append("]).equals(\"").append(m_Attribute.value(i)).append("\"))\n");
+                buffer.append("      return node").append(newID).append("(i);\n");
 
                 subBuffers[i] = new StringBuffer();
                 newID = m_Successors[i].toSource(newID, subBuffers[i]);
             }
             buffer.append("    else\n");
-            buffer.append("      throw new IllegalArgumentException(\"Value '\" + i[" + m_Attribute.index() + "] + \"' is not allowed!\");\n");
+            buffer.append("      throw new IllegalArgumentException(\"Value '\" + i[").append(m_Attribute.index()).append("] + \"' is not allowed!\");\n");
             buffer.append("  }\n");
 
             // output subtree code
             for (i = 0; i < m_Attribute.numValues(); i++) {
                 buffer.append(subBuffers[i].toString());
             }
-            subBuffers = null;
+            //subBuffers = null;
 
             result = newID;
         }
@@ -840,10 +825,10 @@ public class Grupp3Labb1
 
         result = new StringBuffer();
 
-        result.append("class " + className + " {\n");
+        result.append("class ").append(className).append(" {\n");
         result.append("  public static double classify(Object[] i) {\n");
         id = 0;
-        result.append("    return node" + id + "(i);\n");
+        result.append("    return node").append(id).append("(i);\n");
         result.append("  }\n");
         toSource(id, result);
         result.append("}\n");
@@ -853,7 +838,7 @@ public class Grupp3Labb1
 
     /**
      * Print message if debug
-     * @param msg
+     * @param msg the message to be printed
      */
     private void printDebugMessage(String msg) {
         if (m_Debug) {
