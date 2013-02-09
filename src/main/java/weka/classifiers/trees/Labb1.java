@@ -144,14 +144,15 @@ public class Labb1
         TechnicalInformation result;
 
         result = new TechnicalInformation(Type.UNPUBLISHED);
-        result.setValue(Field.AUTHOR, "A. Bson"); //Gruppmedlemmars namn
-        result.setValue(Field.AUTHOR, "C. Dson");
-        result.setValue(Field.AUTHOR, "E. Fson");
+        result.setValue(Field.AUTHOR, "J. Dahlberg"); //Gruppmedlemmars namn
+        result.setValue(Field.AUTHOR, "A. Westberg");
+        result.setValue(Field.AUTHOR, "D. Jansson");
+        result.setValue(Field.AUTHOR, "F. Törnvall");
         result.setValue(Field.YEAR, "2013");
         result.setValue(Field.TYPE, "Laboration");
         result.setValue(Field.SCHOOL, "University of Borås");
         result.setValue(Field.NOTE, "Egna kommentarer");
-        result.setValue(Field.NUMBER, "1"); //Ange gruppens nummer här
+        result.setValue(Field.NUMBER, "3"); //Ange gruppens nummer här
 
         return result;
     }
@@ -211,7 +212,7 @@ public class Labb1
     /**
      * Method for building an Id3 tree.
      *
-     * Skall utökas så att labbkraven uppfylls.
+     * TODO: Skall utökas så att labbkraven uppfylls.
      *
      * @param data the training data
      * @exception Exception if decision tree can't be built successfully
@@ -308,15 +309,16 @@ public class Labb1
         if ((m_Distribution == null) && (m_Successors == null)) {
             return "Labb1: No model built yet.";
         }
-        return "Labb1\n\n" + toString(0);
+
+        return "Labb1\n------------------\n" + toString(0);
     }
 
     /**
-     * kommentera
+     * TODO: Comment
      *
      * @param data the data for which info gain is to be computed
      * @param att the attribute
-     * @return kommentera
+     * @return TODO: comment
      * @throws Exception if computation fails
      */
     private double computeAttributeValue(Instances data, Attribute att) throws Exception {
