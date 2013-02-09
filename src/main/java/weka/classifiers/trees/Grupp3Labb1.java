@@ -21,6 +21,7 @@
  */
 package weka.classifiers.trees;
 
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Vector;
 
@@ -283,7 +284,8 @@ public class Grupp3Labb1
             throws NoSupportForMissingValuesException {
 
         if (instance.hasMissingValue()) {
-            throw new NoSupportForMissingValuesException("Labb1: Trädet skall kunna hantera saknade värden!");
+            return handleMissingValue(instance);
+            //throw new NoSupportForMissingValuesException("Grupp3Labb1: Trädet skall kunna hantera saknade värden!");
         }
         if (m_Attribute == null) {
             return m_ClassValue;
@@ -303,13 +305,82 @@ public class Grupp3Labb1
             throws NoSupportForMissingValuesException {
 
         if (instance.hasMissingValue()) {
-            throw new NoSupportForMissingValuesException("Labb1: Trädet skall kunna hantera saknade värden!");
+            instance.setClassValue(handleMissingValue(instance));
+            //throw new NoSupportForMissingValuesException("Labb1: Trädet skall kunna hantera saknade värden!");
         }
         if (m_Attribute == null) {
             return m_Distribution;
         } else {
             return m_Successors[(int) instance.value(m_Attribute)].distributionForInstance(instance);
         }
+    }
+
+    /**
+     * Handle missing value
+     * @author datadanne
+     * @param instance
+     * @return
+     */
+    private double handleMissingValue(Instance instance) {
+        //return m_MajorityClass;
+        return getMostCommonValue(instance);
+    }
+
+    /**
+     * Get the most common value
+     * @author datadanne
+     * @param instance
+     * @return
+     */
+    private double getMostCommonValue(Instance instance) {
+        double mostCommonValue = 0; // TODO: Is this correct?
+        int count = 0;
+
+        for(int i = 0; i < instance.numAttributes(); i++) {
+            int currentCount = 0;
+            double currentValue = instance.value(i);
+            double comparedValue;
+
+            for(int j = 0; j < instance.numAttributes(); j++){
+                comparedValue = instance.value(j);
+                if(currentValue == comparedValue)
+                    currentCount++;
+
+            }
+            if(currentCount > count){
+                count = currentCount;
+                mostCommonValue =  currentValue;
+            }
+        }
+
+        /*for(int a  = 0; a < instance.numAttributes(); a++){
+            printDebugMessage(instance.value(a) + "");
+        }
+        printDebugMessage("m_MajorityClass:");
+        printDebugMessage(m_MajorityClass + "");
+        printDebugMessage("mostCommonValue:");
+        printDebugMessage(mostCommonValue + "");*/
+
+        return mostCommonValue;
+    }
+
+    /**
+     * TODO: Work in progress
+     * @author datadanne
+     * @param data
+     * @return
+     */
+    boolean isMostOfTheValuesSame(Instances[] data){
+        ArrayList instances = new ArrayList();
+
+        for(int i = 0; i < data.length; i++){
+            for(int j = 0; j < data[i].numAttributes(); j++){
+                for(int k = 0; k <data[i].attribute(j).numValues(); k++){
+                    instances.add(data[i].attribute(k).value(k));
+                }
+            }
+        }
+        return false;
     }
 
     /**
