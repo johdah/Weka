@@ -89,16 +89,18 @@ import weka.core.TechnicalInformation.Type;
  * @author 
  * @version $Revision:  $ 
  */
-public class Labb1
+public class Grupp3Labb1
         extends AbstractClassifier
         implements TechnicalInformationHandler, OptionHandler, AdditionalMeasureProducer {//, Sourcable {
 
     /** for serialization */
     static final long serialVersionUID = -2693678647096322561L;
     /** The node's successors. */
-    private Labb1[] m_Successors;
+    private Grupp3Labb1[] m_Successors;
     /** Attribute used for splitting. */
     private Attribute m_Attribute;
+    /** Instance **/
+    private Instances m_Data;
     /** Class value if node is leaf. */
     private double m_ClassValue;
     /** Class distribution if node is leaf. */
@@ -218,7 +220,6 @@ public class Labb1
      * @exception Exception if decision tree can't be built successfully
      */
     private void makeTree(Instances data) throws Exception {
-
         // Check if no instances have reached this node.
         if (data.numInstances() == 0) {
             m_Attribute = null;
@@ -239,24 +240,36 @@ public class Labb1
         // Make leaf if information gain is zero. 
         // Otherwise create successors.
         if (Utils.eq(bestAttr[m_Attribute.index()], 0)) {
-            m_Attribute = null;
-            m_Distribution = new double[data.numClasses()];
-            Enumeration instEnum = data.enumerateInstances();
-            while (instEnum.hasMoreElements()) {
-                Instance inst = (Instance) instEnum.nextElement();
-                m_Distribution[(int) inst.classValue()]++;
-            }
-            Utils.normalize(m_Distribution);
-            m_ClassValue = Utils.maxIndex(m_Distribution);
-            m_ClassAttribute = data.classAttribute();
+            makeLeaf(data);
         } else {
             Instances[] splitData = splitData(data, m_Attribute);
-            m_Successors = new Labb1[m_Attribute.numValues()];
+            m_Successors = new Grupp3Labb1[m_Attribute.numValues()];
             for (int j = 0; j < m_Attribute.numValues(); j++) {
-                m_Successors[j] = new Labb1();
+                m_Successors[j] = new Grupp3Labb1();
                 m_Successors[j].makeTree(splitData[j]);
             }
         }
+    }
+
+    /**
+     * Create leaf
+     * @author johdah <info@johandahlberg.com>
+     * @param data
+     */
+    private void makeLeaf(Instances data) {
+        m_Attribute = null;
+        m_Data = data;
+        m_Distribution = new double[data.numClasses()];
+
+        Enumeration instEnum = data.enumerateInstances();
+        while (instEnum.hasMoreElements()) {
+            Instance inst = (Instance) instEnum.nextElement();
+            m_Distribution[(int) inst.classValue()]++;
+        }
+
+        Utils.normalize(m_Distribution);
+        m_ClassValue = Utils.maxIndex(m_Distribution);
+        m_ClassAttribute = data.classAttribute();
     }
 
     /**
@@ -297,20 +310,6 @@ public class Labb1
         } else {
             return m_Successors[(int) instance.value(m_Attribute)].distributionForInstance(instance);
         }
-    }
-
-    /**
-     * Prints the decision tree using the private toString method from below.
-     *
-     * @return a textual description of the classifier
-     */
-    public String toString() {
-
-        if ((m_Distribution == null) && (m_Successors == null)) {
-            return "Labb1: No model built yet.";
-        }
-
-        return "Labb1\n------------------\n" + toString(0);
     }
 
     /**
@@ -609,20 +608,36 @@ public class Labb1
     }
 
     /**
-     * Outputs a tree at a certain level.
+     * Prints the decision tree using the private toString method from below.
      *
+     * @return a textual description of the classifier
+     */
+    public String toString() {
+
+        if ((m_Distribution == null) && (m_Successors == null)) {
+            return "Grupp3Labb1: No model built yet.";
+        }
+
+        return "Grupp3Labb1\n------------------\n" + toString(0);
+        /*return "Labb1\n------------------\n" + toString(0)
+                + "\n\nSize of the tree: " + (int)measureTreeSize() + "\n\n"
+                + "Number of leaves: " + (int)measureNumLeaves();*/
+    }
+
+    /**
+     * Outputs a tree at a certain level.
+     * TODO: FIX ME
      * @param level the level at which the tree is to be printed
      * @return the tree as string at the given level
      */
     private String toString(int level) {
-
         StringBuffer text = new StringBuffer();
 
-        if (m_Attribute == null) {
+        if (m_Attribute == null) { // isLeaf
             if (Utils.isMissingValue(m_ClassValue)) {
                 text.append(": null");
             } else {
-                text.append(": " + m_ClassAttribute.value((int) m_ClassValue));
+                text.append(": " + m_ClassAttribute.value((int) m_ClassValue)).append(leafInfo());
             }
         } else {
             for (int j = 0; j < m_Attribute.numValues(); j++) {
@@ -631,10 +646,39 @@ public class Labb1
                     text.append("|  ");
                 }
                 text.append(m_Attribute.name() + " = " + m_Attribute.value(j));
-                text.append(m_Successors[j].toString(level + 1));
+
+                if(m_Successors[j] != null)
+                    text.append(m_Successors[j].toString(level + 1));
             }
         }
         return text.toString();
+    }
+
+    /**
+     * TODO: FIX ME
+     * @return leafInfo
+     */
+    public String leafInfo() {
+        Enumeration instances = m_Data.enumerateInstances();
+        double sum = 0, error = 0;
+
+        while(instances.hasMoreElements()) {
+            Instance inst = (Instance) instances.nextElement();
+            sum++;
+            //printDebugMessage("\ninst ca: "+ inst.value(inst.classAttribute()));
+            //printDebugMessage("Correct ca: "+ m_ClassValue);
+
+            if(inst.value(inst.classAttribute()) != m_ClassValue)
+                error++;
+        }
+
+        String info;
+        if(error == 0)
+            info = " (" + sum + ")";
+        else
+            info = " (" + sum + "/" + error + ")";
+
+        return info;
     }
 
     /**
@@ -737,6 +781,16 @@ public class Labb1
     }
 
     /**
+     * Print message if debug
+     * @param msg
+     */
+    private void printDebugMessage(String msg) {
+        if (m_Debug) {
+            System.out.println("\n" + msg);
+        }
+    }
+
+    /**
      * Returns the revision string.
      * 
      * @return		the revision
@@ -751,7 +805,7 @@ public class Labb1
      * @param args the options for the classifier
      */
     public static void main(String[] args) {
-        runClassifier(new Labb1(), args);
+        runClassifier(new Grupp3Labb1(), args);
     }
 
     /**
