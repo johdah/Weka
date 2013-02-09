@@ -95,6 +95,7 @@ public class Grupp3Labb1
         implements TechnicalInformationHandler, OptionHandler, AdditionalMeasureProducer {//, Sourcable {
 
     /** for serialization */
+    @SuppressWarnings("UnusedDeclaration")
     static final long serialVersionUID = -2693678647096322561L;
     /** The node's successors. */
     private Grupp3Labb1[] m_Successors;
@@ -313,7 +314,7 @@ public class Grupp3Labb1
     /**
      * Handle missing value
      * @param instance current instance
-     * @return
+     * @return the value to fill the missing
      */
     private double handleMissingValue(Instance instance) {
         //return m_MajorityClass; // Could be used
@@ -321,9 +322,8 @@ public class Grupp3Labb1
     }
 
     /**
-     * Get the most common value
      * @param instance current instance
-     * @return
+     * @return the most common value
      */
     private double getMostCommonValue(Instance instance) {
         double mostCommonValue = 0; // TODO: Is this correct?
@@ -362,7 +362,7 @@ public class Grupp3Labb1
      * @return true if most of the values are the same
      */
     boolean isMostOfTheValuesSame(Instances[] data){
-        ArrayList instances = new ArrayList();
+        ArrayList<String> instances = new ArrayList<String>();
 
         for (Instances aData : data) {
             for (int j = 0; j < aData.numAttributes(); j++) {
@@ -869,7 +869,7 @@ public class Grupp3Labb1
      * @return an enumeration of the measure names
      */
     public Enumeration enumerateMeasures() {
-        Vector newVector = new Vector(3);
+        Vector<String> newVector = new Vector<String>(3);
         newVector.addElement("measureTreeSize");
         newVector.addElement("measureNumLeaves");
         newVector.addElement("measureNumRules");
