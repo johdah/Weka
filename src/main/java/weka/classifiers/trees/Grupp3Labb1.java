@@ -681,7 +681,7 @@ public class Grupp3Labb1
 
     /**
      * Outputs a tree at a certain level.
-     * TODO: FIX ME
+     *
      * @param level the level at which the tree is to be printed
      * @return the tree as string at the given level
      */
@@ -711,7 +711,8 @@ public class Grupp3Labb1
     }
 
     /**
-     * TODO: FIX ME
+     * Print info about the leaf
+     *
      * @return leafInfo
      */
     public String leafInfo() {
@@ -895,15 +896,70 @@ public class Grupp3Labb1
         }
     }
 
-    private double measureNumRules() {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    private double measureTreeSize() {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
+    /**
+     * @return the number of leaves
+     */
     private double measureNumLeaves() {
-        throw new UnsupportedOperationException("Not yet implemented");
+        double num = 0;
+
+        if(isLeaf())
+            return 1;
+        else {
+            for(Grupp3Labb1 suc : m_Successors) {
+                if(suc == null)
+                    num++;
+                else
+                    num += suc.measureNumLeaves();
+            }
+        }
+
+        return num;
+    }
+
+    /**
+     * @return the number of rules
+     */
+    private double measureNumRules() {
+        double num = 1;
+
+        if(isLeaf())
+            return 0;
+        else {
+            for(Grupp3Labb1 suc : m_Successors) {
+                if(suc == null)
+                    num++;
+                else
+                    num += suc.measureNumRules();
+            }
+        }
+
+        return num;
+    }
+
+    /**
+     * @return the size of the tree
+     */
+    private double measureTreeSize() {
+        double num = 1;
+
+        if(isLeaf())
+            return 1;
+        else {
+            for(Grupp3Labb1 suc : m_Successors) {
+                if(suc == null)
+                    num++;
+                else
+                    num += suc.measureTreeSize();
+            }
+        }
+
+        return num;
+    }
+
+    /**
+     * @return return true if node is a leaf
+     */
+    private boolean isLeaf() {
+        return(m_Successors == null | m_Successors.length == 0);
     }
 }
