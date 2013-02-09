@@ -496,6 +496,35 @@ public class Grupp3Labb1
      * @return Best split produced
      */
     private Instances[] binarySplitData(Instances data, Attribute att) {
+        // Don't try to split less than 2 instances
+        if(data.numInstances() < 2) {
+            printDebugMessage("You can't try to split less than 2 instances (facepalm)");
+            return null;
+        }
+
+        if(att.isNominal())
+            return binarySplitDataNominal(data, att);
+        else if(att.isNumeric())
+            return binarySplitDataNumeric(data, att);
+        else
+            return null;
+    }
+
+    /**
+     * @param data the data that is to be split
+     * @param att the attribute to be used for splitting
+     * @return Best split produced
+     */
+    private Instances[] binarySplitDataNominal(Instances data, Attribute att) {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    /**
+     * @param data the data that is to be split
+     * @param att the attribute to be used for splitting
+     * @return Best split produced
+     */
+    private Instances[] binarySplitDataNumeric(Instances data, Attribute att) {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
@@ -507,6 +536,20 @@ public class Grupp3Labb1
      * @return the sets of instances produced by the split
      */
     private Instances[] splitData(Instances data, Attribute att) {
+        if(att.isNominal())
+            return splitDataNominal(data, att);
+        else if(att.isNumeric())
+            return splitDataNumeric(data, att);
+        else
+            return null;
+    }
+
+    /**
+     * @param data the data which is to be split
+     * @param att the attribute to be used for splitting
+     * @return the sets of instances produced by the split
+     */
+    private Instances[] splitDataNominal(Instances data, Attribute att) {
         Instances[] splitData = new Instances[att.numValues()];
         for (int j = 0; j < att.numValues(); j++) {
             splitData[j] = new Instances(data, data.numInstances());
@@ -522,6 +565,15 @@ public class Grupp3Labb1
             aSplitData.compactify();
         }
         return splitData;
+    }
+
+    /**
+     * @param data the data which is to be split
+     * @param att the attribute to be used for splitting
+     * @return the sets of instances produced by the split
+     */
+    private Instances[] splitDataNumeric(Instances data, Attribute att) {
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     /**
