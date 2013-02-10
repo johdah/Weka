@@ -221,6 +221,8 @@ public class Grupp3Labb1
      * @exception Exception if decision tree can't be built successfully
      */
     private void makeTree(Instances data) throws Exception {
+        splitIndex = new double[data.numAttributes()-1];
+
         // Check if no instances have reached this node.
         if (data.numInstances() == 0) {
             m_Attribute = null;
