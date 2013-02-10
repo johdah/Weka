@@ -124,7 +124,7 @@ public class Grupp3Labb1
     /** Binary splits on nominal attributes? */
     private boolean m_UseBinarySplits;
 
-    private double[] previousGinis = new double[10];
+    private ArrayList previousGinis = new ArrayList();
 
     /**
      * Returns a string describing the classifier.
@@ -395,19 +395,33 @@ public class Grupp3Labb1
                 return infoGain / splitInfo;                
             case 1: //GiniIndex
                 double gini = ComputeGiniIndex(data, att);
-                addToPreviousGinis(gini);
-                return ComputeGiniIndex(data, att);
+
+                System.out.println(gini);
+                return gini;
         }
         throw new Exception("ComputeAttributeValue: Unreachable code");
     }
 
-    private void addToPreviousGinis(double gini){
-        int len = previousGinis.length;
-        if(previousGinis[0] == 0.0){
+    boolean isGinisGettingBetter(){
+        if(previousGinis.size() > 10){
+
+            double currentGini;
+            double compareWith;
+
+            for(int i = 0; i < previousGinis.size(); i++){
+                currentGini = (Double)previousGinis.get(0);
+                for(int j = i; j < previousGinis.size(); j++){
+                    compareWith = (Double)previousGinis.get(j);
+                    if(currentGini < compareWith){
+                        return true;
+                    }
+                }
+            }
 
         }
-
+        return false;
     }
+
 
     /**
      * TODO: Comment
