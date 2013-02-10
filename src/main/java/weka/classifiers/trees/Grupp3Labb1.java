@@ -442,7 +442,6 @@ public class Grupp3Labb1
     	Instances[] splitData = getSplitData(data, att);
     	double gini = 0;
 
-        if(splitData == null) return 0;
         for (Instances aSplitData : splitData) {
             //for each node..
             double nodeResult = 1.0;
