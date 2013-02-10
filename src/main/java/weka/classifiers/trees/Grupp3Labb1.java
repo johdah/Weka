@@ -331,7 +331,7 @@ public class Grupp3Labb1
      * @return the most common value
      */
     private double getMostCommonValue(Instance instance) {
-        double mostCommonValue = 0; // TODO: Is this correct?
+        double mostCommonValue = 0;
         int count = 0;
 
         for(int i = 0; i < instance.numAttributes(); i++) {
@@ -390,10 +390,9 @@ public class Grupp3Labb1
     private double computeAttributeValue(Instances data, Attribute att) throws Exception {
         switch (m_SplitMethod) {
             case 0: //GainRatio
-                //double infoGain = computeInfoGain(data, att);
-//                double splitInfo = computeSplitInfo(data, att);
-//                return infoGain / splitInfo;                
-                return computeInfoGain(data, att);
+                double infoGain = computeInfoGain(data, att);
+                double splitInfo = computeSplitInfo(data, att);
+                return infoGain / splitInfo;                
             case 1: //GiniIndex
                 double gini = ComputeGiniIndex(data, att);
                 addToPreviousGinis(gini);
@@ -413,14 +412,34 @@ public class Grupp3Labb1
     /**
      * TODO: Comment
      *
-     * @param data the data for which info gain is to be computed
+     * @param data the data for which gini index is to be computed
      * @param att the attribute
-     * @return TODO: Comment
-     * @throws Exception if computation fails
+     * @return TODO: double gini index value
      */
-    private double ComputeGiniIndex(Instances data, Attribute att)
-            throws Exception {
-        throw new UnsupportedOperationException("Not yet implemented");
+    private double ComputeGiniIndex(Instances data, Attribute att){
+    	Instances[] splitData = getSplitData(data, att);
+    	double gini = 0;
+        for(int s = 0; s < splitData.length; s++){
+        	//for each node..
+        	double nodeResult = 1.0;
+        	double[] classCount = new double[data.numClasses()];
+        	for(int init = 0; init < data.numClasses(); init ++){
+             	classCount[init] = 0;
+            }
+        	
+        	//count instances in classes.
+     	   for(int i = 0; i < data.numInstances(); i++){
+     	        //cumpute how frequent a class is.
+     	       	classCount[(int) data.instance(i).classValue()]++;       
+     	  }
+     	   for(int x = 0; x < classCount.length; x ++){
+     		   double p = classCount[x] /  data.numInstances();
+     		   //for each class result - P(C1)^2.. loop and do P(C2)^2.. and so on
+     		  nodeResult = nodeResult -  ( p * p );
+     	   }
+     	  gini += ((double)splitData.length  / (double) data.size()) * nodeResult;
+        }
+    	return gini;
     }
 
     /**
@@ -428,12 +447,15 @@ public class Grupp3Labb1
      *
      * @param data the data for which info gain is to be computed
      * @param att the attribute
-     * @return TODO: Comment
-     * @throws Exception if computation fails
+     * @return TODO: splitInfo value
      */
-    private double computeSplitInfo(Instances data, Attribute att)
-            throws Exception {
-        throw new UnsupportedOperationException("Not yet implemented");
+    private double computeSplitInfo(Instances data, Attribute att){
+    	Instances[] splitData = getSplitData(data, att);
+    	double splitInfo = 0.0;
+    	for(int i = 0; i < splitData.length; i++){
+    		splitInfo -= (splitData[i].numInstances() / data.numInstances()) * Math.log(splitData[i].numInstances() / data.numInstances());
+    	}
+    	return splitInfo;
     }
 
     /**
@@ -772,10 +794,9 @@ public class Grupp3Labb1
             return "Grupp3Labb1: No model built yet.";
         }
 
-        return "Grupp3Labb1\n------------------\n" + toString(0);
-        /*return "Labb1\n------------------\n" + toString(0)
+        return "Grupp3Labb1\n------------------\n" + toString(0)
                 + "\n\nSize of the tree: " + (int)measureTreeSize() + "\n\n"
-                + "Number of leaves: " + (int)measureNumLeaves();*/
+                + "Number of leaves: " + (int)measureNumLeaves();
     }
 
     /**
@@ -1059,6 +1080,6 @@ public class Grupp3Labb1
      * @return return true if node is a leaf
      */
     private boolean isLeaf() {
-        return(m_Successors == null | m_Successors.length == 0);
+        return(m_Successors == null || m_Successors.length == 0);
     }
 }
