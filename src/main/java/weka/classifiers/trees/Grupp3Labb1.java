@@ -125,6 +125,7 @@ public class Grupp3Labb1
     private boolean m_UseBinarySplits;
 
     private double[] previousGinis = new double[10];
+    private double[] splitIndex;
 
     /**
      * Returns a string describing the classifier.
@@ -590,7 +591,52 @@ public class Grupp3Labb1
      * @return Best split produced
      */
     private Instances[] binarySplitDataNumeric(Instances data, Attribute att) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        double maxValue = Double.NEGATIVE_INFINITY, minValue = Double.POSITIVE_INFINITY;
+        Instance inst;
+
+        Instances[] splitData = new Instances[2];
+        splitData[0] = data.stringFreeStructure();
+        splitData[1] = data.stringFreeStructure();
+
+        Enumeration instEnum = data.enumerateInstances();
+        while (instEnum.hasMoreElements()) {
+            inst = (Instance) instEnum.nextElement();
+            double value = inst.value(att);
+
+            if(maxValue < value)
+                maxValue = value;
+            if(minValue > value)
+                minValue = value;
+        }
+
+        double diff = maxValue - minValue;
+        double splitValue = diff/2;
+
+        double value = minValue+splitValue;
+        for (int i = 0; i < 2; i++) {
+            splitIndex[i] = value;
+            value += splitValue;
+        }
+
+        instEnum = data.enumerateInstances();
+        while (instEnum.hasMoreElements()) {
+            inst = (Instance) instEnum.nextElement();
+
+            if(!inst.hasMissingValue()) {
+                double bound = minValue + splitValue;
+
+                if(bound < inst.value(att)) {
+                    splitData[1].add(inst);
+                } else {
+                    splitData[0].add(inst);
+                }
+            }
+        }
+
+        for (Instances aSplitData : splitData) {
+            aSplitData.compactify();
+        }
+        return splitData;
     }
 
     /**
