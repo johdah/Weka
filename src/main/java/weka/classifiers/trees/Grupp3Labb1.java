@@ -124,6 +124,8 @@ public class Grupp3Labb1
     /** Binary splits on nominal attributes? */
     private boolean m_UseBinarySplits;
 
+    private double[] previousGinis = new double[10];
+
     /**
      * Returns a string describing the classifier.
      * @return a description suitable for the GUI.
@@ -235,6 +237,7 @@ public class Grupp3Labb1
         }
         m_Attribute = data.attribute(Utils.maxIndex(bestAttr));
 
+
         // Make leaf if information gain is zero. 
         // Otherwise create successors.
         if (Utils.eq(bestAttr[m_Attribute.index()], 0)) {
@@ -245,6 +248,8 @@ public class Grupp3Labb1
             for (int j = 0; j < m_Attribute.numValues(); j++) {
                 m_Successors[j] = new Grupp3Labb1();
                 m_Successors[j].makeTree(splitData[j]);
+                m_Successors[j].setMinimumLeafSize(m_MinimumLeafSize);
+
             }
         }
     }
@@ -390,9 +395,19 @@ public class Grupp3Labb1
 //                return infoGain / splitInfo;                
                 return computeInfoGain(data, att);
             case 1: //GiniIndex
+                double gini = ComputeGiniIndex(data, att);
+                addToPreviousGinis(gini);
                 return ComputeGiniIndex(data, att);
         }
         throw new Exception("ComputeAttributeValue: Unreachable code");
+    }
+
+    private void addToPreviousGinis(double gini){
+        int len = previousGinis.length;
+        if(previousGinis[0] == 0.0){
+
+        }
+
     }
 
     /**
