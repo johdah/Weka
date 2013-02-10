@@ -124,6 +124,8 @@ public class Grupp3Labb1
     /** Binary splits on nominal attributes? */
     private boolean m_UseBinarySplits;
 
+    private double[] previousGinis = new double[10];
+
     /**
      * Returns a string describing the classifier.
      * @return a description suitable for the GUI.
@@ -246,6 +248,7 @@ public class Grupp3Labb1
         }
         m_Attribute = data.attribute(Utils.maxIndex(bestAttr));
 
+
         if (m_SplitMethod == 0) {
             m_Attribute = data.attribute(Utils.maxIndex(bestAttr));
         } else {
@@ -260,21 +263,11 @@ public class Grupp3Labb1
         } else {
             Instances[] splitData = getSplitData(data, m_Attribute);
             m_Successors = new Grupp3Labb1[m_Attribute.numValues()];
-
-            if (m_UseBinarySplits) {
-                printDebugMessage("\nMaking binary split on: " + m_Attribute.name());
-            } else {
-                printDebugMessage("\nMaking multisplit on: " + m_Attribute.name());
-            }
-
-            //printDebugMessage("\nNumber of splits: " + numberOfSplit);
-
             for (int j = 0; j < m_Attribute.numValues(); j++) {
                 m_Successors[j] = new Grupp3Labb1();
-                if (m_Debug) {
-                    printDebugMessage("Creating successor #" + (j + 1) + ": " + splitData[j].numInstances() + " instances.");
-                }
                 m_Successors[j].makeTree(splitData[j]);
+                m_Successors[j].setMinimumLeafSize(m_MinimumLeafSize);
+
             }
         }
     }
@@ -423,10 +416,19 @@ public class Grupp3Labb1
                 return infoGain / splitInfo;
             case 1: //GiniIndex
                 double giniIndex = computeGiniIndex(data, att);
+                addToPreviousGinis(giniIndex);
                 printDebugMessage("GiniIndex: " + giniIndex);
                 return giniIndex;
         }
         throw new Exception("ComputeAttributeValue: Unreachable code");
+    }
+
+    private void addToPreviousGinis(double gini){
+        int len = previousGinis.length;
+        if(previousGinis[0] == 0.0){
+
+        }
+
     }
 
     /**
@@ -533,6 +535,14 @@ public class Grupp3Labb1
 
     /**
      * @param data instances
+     * @return splitData according to the current setting and type of attribute
+     */
+    private Instances[] getSplitData(Instances data) {
+        return getSplitData(data, m_Attribute);
+    }
+
+    /**
+     * @param data instances
      * @param att attribute
      * @return splitData according to the current setting and type of attribute
      */
@@ -545,6 +555,7 @@ public class Grupp3Labb1
 
     /**
      * Splits a dataset binarily, according to the values of a nominal attribute.
+     * TODO: Work in progress - Johan
      *
      * @param data the data that is to be split
      * @param att the attribute to be used for splitting
