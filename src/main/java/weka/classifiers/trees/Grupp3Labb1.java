@@ -402,20 +402,21 @@ public class Grupp3Labb1
      * @return TODO: double gini index value
      */
     private double ComputeGiniIndex(Instances data, Attribute att){
-    	Instances[] splitData = splitData(data, att);
+    	Instances[] splitData = getSplitData(data, att);
     	double gini = 0;
         for(int s = 0; s < splitData.length; s++){
         	//for each node..
-        	double nodeResult = 1;
+        	double nodeResult = 1.0;
         	double[] classCount = new double[data.numClasses()];
         	for(int init = 0; init < data.numClasses(); init ++){
              	classCount[init] = 0;
             }
+        	
         	//count instances in classes.
      	   for(int i = 0; i < data.numInstances(); i++){
      	        //cumpute how frequent a class is.
-     	       	classCount[data.instance(i).classIndex()]++;       
-     	   }
+     	       	classCount[(int) data.instance(i).classValue()]++;       
+     	  }
      	   for(int x = 0; x < classCount.length; x ++){
      		   double p = classCount[x] /  data.numInstances();
      		   //for each class result - P(C1)^2.. loop and do P(C2)^2.. and so on
@@ -434,7 +435,7 @@ public class Grupp3Labb1
      * @return TODO: splitInfo value
      */
     private double computeSplitInfo(Instances data, Attribute att){
-    	Instances[] splitData = splitData(data, att);
+    	Instances[] splitData = getSplitData(data, att);
     	double splitInfo = 0.0;
     	for(int i = 0; i < splitData.length; i++){
     		splitInfo -= (splitData[i].numInstances() / data.numInstances()) * Math.log(splitData[i].numInstances() / data.numInstances());
