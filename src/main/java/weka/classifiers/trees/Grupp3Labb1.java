@@ -243,7 +243,7 @@ public class Grupp3Labb1
         //
         //percentTheSame(splitData,7);
         // Otherwise create successors.
-        if (Utils.eq(bestAttr[m_Attribute.index()], 0)) {
+        if (Utils.eq(bestAttr[m_Attribute.index()], 0) || data.numInstances() <= m_MinimumLeafSize) {
             makeLeaf(data);
         } else {
 
