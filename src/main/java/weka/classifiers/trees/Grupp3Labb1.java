@@ -251,7 +251,6 @@ public class Grupp3Labb1
         }
         m_Attribute = data.attribute(Utils.maxIndex(bestAttr));
 
-
         if (m_SplitMethod == 0) {
             m_Attribute = data.attribute(Utils.maxIndex(bestAttr));
         } else {
@@ -266,63 +265,14 @@ public class Grupp3Labb1
         } else {
             Instances[] splitData = getSplitData(data, m_Attribute);
             m_Successors = new Grupp3Labb1[m_Attribute.numValues()];
-            //Shall we make more instances?
-
+            // TODO: Shall we make more instances?
 
             for (int j = 0; j < m_Attribute.numValues(); j++) {
                 m_Successors[j] = new Grupp3Labb1();
                 m_Successors[j].makeTree(splitData[j]);
                 m_Successors[j].setMinimumLeafSize(m_MinimumLeafSize);
-
             }
         }
-    }
-
-    private boolean percentTheSame(Instances[] data, int percent){
-        /*
-        ArrayList array = new ArrayList();
-        for(int i = 0; i < data.length; i++){
-            for(int j = 0; j < data[i].numAttributes(); j++){
-                array.add(data[i].instance(i).attribute(j).);
-            }
-            //data[i].instance(i).classAttribute().value()
-        }
-        */
-
-
-        ArrayList array = new ArrayList();
-
-        for(int i = 0; i < data.length; i++){
-            for(int j = 0; j < data[i].numAttributes(); j++){
-                for(int k = 0; k < data[i].attribute(j).numValues(); k++){
-                    array.add(data[i].instance(j).attribute(j).value(k));
-                }
-            }
-        }
-        /*
-        double mostCommonValue = 0;
-        int count = 0;
-
-        for(int i = 0; i < instance.numAttributes(); i++) {
-            int currentCount = 0;
-            double currentValue = instance.value(i);
-            double comparedValue;
-
-            for(int j = 0; j < instance.numAttributes(); j++){
-            comparedValue = instance.value(j);
-            if(currentValue == comparedValue)
-            currentCount++;
-            }
-            if(currentCount > count){
-                count = currentCount;
-                mostCommonValue =  currentValue;
-             }
-
-             //return mostCommonValue;
-        }
-        return false;
-        */
-        return false;
     }
 
     /**
@@ -356,7 +306,6 @@ public class Grupp3Labb1
      */
     public double classifyInstance(Instance instance)
             throws NoSupportForMissingValuesException {
-
         if (instance.hasMissingValue()) {
             return handleMissingValue(instance);
         }
@@ -370,18 +319,19 @@ public class Grupp3Labb1
     }
 
     /**
+     * TODO: Bad for binary
      * Computes class distribution for instance using decision tree.
      *
      * @param instance the instance for which distribution is to be computed
      * @return the class distribution for the given instance
      * @throws NoSupportForMissingValuesException if instance has missing values
-     * TODO: Bad for binary
      */
     public double[] distributionForInstance(Instance instance)
             throws NoSupportForMissingValuesException {
         if (instance.hasMissingValue()) {
             instance.setClassValue(handleMissingValue(instance));
         }
+
         if (m_Attribute == null) {
             return m_Distribution;
         } else {
@@ -401,6 +351,7 @@ public class Grupp3Labb1
     }
 
     /**
+     * TODO: Can we delete
      * @param instance current instance
      * @return the most common value
      */
@@ -424,19 +375,12 @@ public class Grupp3Labb1
             }
         }
 
-        /*for(int a  = 0; a < instance.numAttributes(); a++){
-            printDebugMessage(instance.value(a) + "");
-        }
-        printDebugMessage("m_MajorityClass:");
-        printDebugMessage(m_MajorityClass + "");
-        printDebugMessage("mostCommonValue:");
-        printDebugMessage(mostCommonValue + "");*/
-
         return mostCommonValue;
     }
 
     /**
      * TODO: Work in progress
+     * TODO: Delete?
      * @param data an instance array
      * @return true if most of the values are the same
      */
@@ -479,20 +423,16 @@ public class Grupp3Labb1
         throw new Exception("ComputeAttributeValue: Unreachable code");
     }
 
-    /**
+    /*
      * TODO: No need
      *
-     * @param data the data for which info gain is to be computed
-     * @param att the attribute
-     * @return TODO: comment
-     * @throws Exception if computation fails
+     * @param gini
      */
     private void addToPreviousGinis(double gini){
         int len = previousGinis.length;
         if(previousGinis[0] == 0.0){
 
         }
-
     }
 
     /**
@@ -594,14 +534,6 @@ public class Grupp3Labb1
         }
         entropy /= (double) data.numInstances();
         return entropy + Utils.log2(data.numInstances());
-    }
-
-    /**
-     * @param data instances
-     * @return splitData according to the current setting and type of attribute
-     */
-    private Instances[] getSplitData(Instances data) {
-        return getSplitData(data, m_Attribute);
     }
 
     /**
