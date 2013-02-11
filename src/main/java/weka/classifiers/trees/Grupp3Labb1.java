@@ -120,7 +120,7 @@ public class Grupp3Labb1
         new Tag(0, "GainRatio"),
         new Tag(1, "GiniIndex")
     };
-    public int m_SplitMethod = 0;
+    public static int m_SplitMethod = 0;
     /** Binary splits on nominal attributes? */
     private boolean m_UseBinarySplits;
 
@@ -231,26 +231,40 @@ public class Grupp3Labb1
             return;
         }
 
+        printDebugMessage("\n--------------NEW NODE--------------");
+        //printDebugMessage("\nNumber of instances in: " + data.numInstances());
+
         // Compute attribute with maximum information gain.
         double[] bestAttr = new double[data.numAttributes()];
         Enumeration attEnum = data.enumerateAttributes();
+
+        if (m_SplitMethod == 0) {
+            printDebugMessage("\nGainRatio for Atributes:");
+        } else {
+            printDebugMessage("\nGiniIndex for Atributes:");
+        }
+
         while (attEnum.hasMoreElements()) {
             Attribute att = (Attribute) attEnum.nextElement();
             bestAttr[att.index()] = computeAttributeValue(data, att);
+            printDebugMessage("\n" + att.index() + ": " + bestAttr[att.index()]);
         }
         m_Attribute = data.attribute(Utils.maxIndex(bestAttr));
 
-        Instances[] splitData = getSplitData(data, m_Attribute);
-        // Make leaf if information gain is zero || if gini is not getting better || 70% of all values are the same
-        //TODO: Styra lövstorlek
-        //
-        //percentTheSame(splitData,7);
+
+        if (m_SplitMethod == 0) {
+            m_Attribute = data.attribute(Utils.maxIndex(bestAttr));
+        } else {
+            m_Attribute = data.attribute(Utils.minIndex(bestAttr));
+        }
+        printDebugMessage("\nChoosing: " + m_Attribute.index() + " (" + m_Attribute.name() + ")\n");
+
+        // Make leaf if information gain is zero. 
         // Otherwise create successors.
         if (Utils.eq(bestAttr[m_Attribute.index()], 0) || data.numInstances() <= m_MinimumLeafSize) {
             makeLeaf(data);
         } else {
-
-
+            Instances[] splitData = getSplitData(data, m_Attribute);
             m_Successors = new Grupp3Labb1[m_Attribute.numValues()];
             //Shall we make more instances?
 
@@ -350,6 +364,7 @@ public class Grupp3Labb1
         if (m_Attribute == null) {
             return m_ClassValue;
         } else {
+            // TODO: Bad for binary
             return m_Successors[(int) instance.value(m_Attribute)].classifyInstance(instance);
         }
     }
@@ -360,6 +375,7 @@ public class Grupp3Labb1
      * @param instance the instance for which distribution is to be computed
      * @return the class distribution for the given instance
      * @throws NoSupportForMissingValuesException if instance has missing values
+     * TODO: Bad for binary
      */
     public double[] distributionForInstance(Instance instance)
             throws NoSupportForMissingValuesException {
@@ -377,6 +393,7 @@ public class Grupp3Labb1
      * Handle missing value
      * @param instance current instance
      * @return the value to fill the missing
+     * TODO: Should we use m_MajorityClass
      */
     private double handleMissingValue(Instance instance) {
         return m_MajorityClass; // Could be used
@@ -449,11 +466,15 @@ public class Grupp3Labb1
             case 0: //GainRatio
                 double infoGain = computeInfoGain(data, att);
                 double splitInfo = computeSplitInfo(data, att);
-                return infoGain / splitInfo;                
+                printDebugMessage("InfoGain: " + infoGain);
+                printDebugMessage("SplitInfo: " + splitInfo);
+                printDebugMessage("GainRatio: " + infoGain/splitInfo);
+                return infoGain / splitInfo;
             case 1: //GiniIndex
-                double gini = ComputeGiniIndex(data, att);
-                addToPreviousGinis(gini);
-                return ComputeGiniIndex(data, att);
+                double giniIndex = computeGiniIndex(data, att);
+                addToPreviousGinis(giniIndex);
+                printDebugMessage("GiniIndex: " + giniIndex);
+                return giniIndex;
         }
         throw new Exception("ComputeAttributeValue: Unreachable code");
     }
@@ -481,28 +502,31 @@ public class Grupp3Labb1
      * @param att the attribute
      * @return TODO: double gini index value
      */
-    private double ComputeGiniIndex(Instances data, Attribute att){
+    private double computeGiniIndex(Instances data, Attribute att){
     	Instances[] splitData = getSplitData(data, att);
     	double gini = 0;
-        for(int s = 0; s < splitData.length; s++){
-        	//for each node..
-        	double nodeResult = 1.0;
-        	double[] classCount = new double[data.numClasses()];
-        	for(int init = 0; init < data.numClasses(); init ++){
-             	classCount[init] = 0;
+
+        for (Instances aSplitData : splitData) {
+            //for each node..
+            double nodeResult = 1.0;
+            double[] classCount = new double[data.numClasses()];
+            for (int init = 0; init < data.numClasses(); init++) {
+                classCount[init] = 0;
             }
-        	
-        	//count instances in classes.
-     	   for(int i = 0; i < data.numInstances(); i++){
-     	        //cumpute how frequent a class is.
-     	       	classCount[(int) data.instance(i).classValue()]++;       
-     	  }
-     	   for(int x = 0; x < classCount.length; x ++){
-     		   double p = classCount[x] /  data.numInstances();
-     		   //for each class result - P(C1)^2.. loop and do P(C2)^2.. and so on
-     		  nodeResult = nodeResult -  ( p * p );
-     	   }
-     	  gini += ((double)splitData.length  / (double) data.size()) * nodeResult;
+
+            //count instances in classes.
+            for (int i = 0; i < data.numInstances(); i++) {
+                //cumpute how frequent a class is.
+                classCount[(int) data.instance(i).classValue()]++;
+            }
+
+            for (double aClassCount : classCount) {
+                double p = aClassCount / data.numInstances();
+                //for each class result - P(C1)^2.. loop and do P(C2)^2.. and so on
+                nodeResult = nodeResult - (p * p);
+            }
+
+            gini += ((double) splitData.length / (double) data.size()) * nodeResult;
         }
     	return gini;
     }
@@ -517,9 +541,9 @@ public class Grupp3Labb1
     private double computeSplitInfo(Instances data, Attribute att){
     	Instances[] splitData = getSplitData(data, att);
     	double splitInfo = 0.0;
-    	for(int i = 0; i < splitData.length; i++){
-    		splitInfo -= (splitData[i].numInstances() / data.numInstances()) * Math.log(splitData[i].numInstances() / data.numInstances());
-    	}
+        for (Instances aSplitData : splitData) {
+            splitInfo -= (aSplitData.numInstances() / data.numInstances()) * Math.log(aSplitData.numInstances() / data.numInstances());
+        }
     	return splitInfo;
     }
 
@@ -535,11 +559,14 @@ public class Grupp3Labb1
             throws Exception {
         double infoGain = computeEntropy(data);
         Instances[] splitData = getSplitData(data, att);
-        for (int j = 0; j < att.numValues(); j++) {
-            if (splitData[j].numInstances() > 0) {
-                infoGain -= ((double) splitData[j].numInstances()
-                        / (double) data.numInstances())
-                        * computeEntropy(splitData[j]);
+
+        if(splitData != null) {
+            for (int j = 0; j < att.numValues(); j++) {
+                if (splitData[j].numInstances() > 0) {
+                    infoGain -= ((double) splitData[j].numInstances()
+                            / (double) data.numInstances())
+                            * computeEntropy(splitData[j]);
+                }
             }
         }
         return infoGain;
@@ -591,7 +618,6 @@ public class Grupp3Labb1
 
     /**
      * Splits a dataset binarily, according to the values of a nominal attribute.
-     * TODO: Work in progress - Johan
      *
      * @param data the data that is to be split
      * @param att the attribute to be used for splitting
@@ -625,6 +651,7 @@ public class Grupp3Labb1
      * @param data the data that is to be split
      * @param att the attribute to be used for splitting
      * @return Best split produced
+     * TODO: Check book cap4 - splitting on binary attribute
      */
     private Instances[] binarySplitDataNumeric(Instances data, Attribute att) {
         double maxValue = Double.NEGATIVE_INFINITY, minValue = Double.POSITIVE_INFINITY;
@@ -914,6 +941,7 @@ public class Grupp3Labb1
      *
      * @param level the level at which the tree is to be printed
      * @return the tree as string at the given level
+     * TODO: Check binary
      */
     private String toString(int level) {
         StringBuilder text = new StringBuilder();
@@ -925,6 +953,7 @@ public class Grupp3Labb1
                 text.append(": ").append(m_ClassAttribute.value((int) m_ClassValue)).append(leafInfo());
             }
         } else {
+            // TODO: m_Attribute.numValues is bad for binary
             for (int j = 0; j < m_Attribute.numValues(); j++) {
                 text.append("\n");
                 for (int i = 0; i < level; i++) {
