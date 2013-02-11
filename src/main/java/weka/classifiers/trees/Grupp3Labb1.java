@@ -112,7 +112,7 @@ public class Grupp3Labb1
     /** Minimum number of instances in leafs*/
     private int m_minNumObj = 2;
     /** The minimum leaf size */
-    private double m_MinimumLeafSize;
+    private static double m_MinimumLeafSize;
     /** The majority class */
     private static int m_MajorityClass;
     /** The spliting method */
@@ -231,41 +231,30 @@ public class Grupp3Labb1
             return;
         }
 
-        printDebugMessage("\n--------------NEW NODE--------------");
-        //printDebugMessage("\nNumber of instances in: " + data.numInstances());
-
         // Compute attribute with maximum information gain.
         double[] bestAttr = new double[data.numAttributes()];
         Enumeration attEnum = data.enumerateAttributes();
-
-        if (m_SplitMethod == 0) {
-            printDebugMessage("\nGainRatio for Atributes:");
-        } else {
-            printDebugMessage("\nGiniIndex for Atributes:");
-        }
-
         while (attEnum.hasMoreElements()) {
             Attribute att = (Attribute) attEnum.nextElement();
             bestAttr[att.index()] = computeAttributeValue(data, att);
-            printDebugMessage("\n" + att.index() + ": " + bestAttr[att.index()]);
         }
         m_Attribute = data.attribute(Utils.maxIndex(bestAttr));
 
-
-        if (m_SplitMethod == 0) {
-            m_Attribute = data.attribute(Utils.maxIndex(bestAttr));
-        } else {
-            m_Attribute = data.attribute(Utils.minIndex(bestAttr));
-        }
-        printDebugMessage("\nChoosing: " + m_Attribute.index() + " (" + m_Attribute.name() + ")\n");
-
-        // Make leaf if information gain is zero. 
+        Instances[] splitData = getSplitData(data, m_Attribute);
+        // Make leaf if information gain is zero || if gini is not getting better || 70% of all values are the same
+        //TODO: Styra lövstorlek
+        //
+        //percentTheSame(splitData,7);
         // Otherwise create successors.
-        if (Utils.eq(bestAttr[m_Attribute.index()], 0)) {
+        if (Utils.eq(bestAttr[m_Attribute.index()], 0) || data.numInstances() <= m_MinimumLeafSize) {
             makeLeaf(data);
         } else {
-            Instances[] splitData = getSplitData(data, m_Attribute);
+
+
             m_Successors = new Grupp3Labb1[m_Attribute.numValues()];
+            //Shall we make more instances?
+
+
             for (int j = 0; j < m_Attribute.numValues(); j++) {
                 m_Successors[j] = new Grupp3Labb1();
                 m_Successors[j].makeTree(splitData[j]);
@@ -273,6 +262,53 @@ public class Grupp3Labb1
 
             }
         }
+    }
+
+    private boolean percentTheSame(Instances[] data, int percent){
+        /*
+        ArrayList array = new ArrayList();
+        for(int i = 0; i < data.length; i++){
+            for(int j = 0; j < data[i].numAttributes(); j++){
+                array.add(data[i].instance(i).attribute(j).);
+            }
+            //data[i].instance(i).classAttribute().value()
+        }
+        */
+
+
+        ArrayList array = new ArrayList();
+
+        for(int i = 0; i < data.length; i++){
+            for(int j = 0; j < data[i].numAttributes(); j++){
+                for(int k = 0; k < data[i].attribute(j).numValues(); k++){
+                    array.add(data[i].instance(j).attribute(j).value(k));
+                }
+            }
+        }
+        /*
+        double mostCommonValue = 0;
+        int count = 0;
+
+        for(int i = 0; i < instance.numAttributes(); i++) {
+            int currentCount = 0;
+            double currentValue = instance.value(i);
+            double comparedValue;
+
+            for(int j = 0; j < instance.numAttributes(); j++){
+            comparedValue = instance.value(j);
+            if(currentValue == comparedValue)
+            currentCount++;
+            }
+            if(currentCount > count){
+                count = currentCount;
+                mostCommonValue =  currentValue;
+             }
+
+             //return mostCommonValue;
+        }
+        return false;
+        */
+        return false;
     }
 
     /**
@@ -343,8 +379,8 @@ public class Grupp3Labb1
      * @return the value to fill the missing
      */
     private double handleMissingValue(Instance instance) {
-        //return m_MajorityClass; // Could be used
-        return getMostCommonValue(instance);
+        return m_MajorityClass; // Could be used
+        //return getMostCommonValue(instance);
     }
 
     /**
@@ -413,19 +449,23 @@ public class Grupp3Labb1
             case 0: //GainRatio
                 double infoGain = computeInfoGain(data, att);
                 double splitInfo = computeSplitInfo(data, att);
-                printDebugMessage("InfoGain: " + infoGain);
-                printDebugMessage("SplitInfo: " + splitInfo);
-                printDebugMessage("GainRatio: " + infoGain/splitInfo);
-                return infoGain / splitInfo;
+                return infoGain / splitInfo;                
             case 1: //GiniIndex
-                double giniIndex = computeGiniIndex(data, att);
-                addToPreviousGinis(giniIndex);
-                printDebugMessage("GiniIndex: " + giniIndex);
-                return giniIndex;
+                double gini = ComputeGiniIndex(data, att);
+                addToPreviousGinis(gini);
+                return ComputeGiniIndex(data, att);
         }
         throw new Exception("ComputeAttributeValue: Unreachable code");
     }
 
+    /**
+     * TODO: No need
+     *
+     * @param data the data for which info gain is to be computed
+     * @param att the attribute
+     * @return TODO: comment
+     * @throws Exception if computation fails
+     */
     private void addToPreviousGinis(double gini){
         int len = previousGinis.length;
         if(previousGinis[0] == 0.0){
@@ -441,31 +481,28 @@ public class Grupp3Labb1
      * @param att the attribute
      * @return TODO: double gini index value
      */
-    private double computeGiniIndex(Instances data, Attribute att){
+    private double ComputeGiniIndex(Instances data, Attribute att){
     	Instances[] splitData = getSplitData(data, att);
     	double gini = 0;
-
-        for (Instances aSplitData : splitData) {
-            //for each node..
-            double nodeResult = 1.0;
-            double[] classCount = new double[data.numClasses()];
-            for (int init = 0; init < data.numClasses(); init++) {
-                classCount[init] = 0;
+        for(int s = 0; s < splitData.length; s++){
+        	//for each node..
+        	double nodeResult = 1.0;
+        	double[] classCount = new double[data.numClasses()];
+        	for(int init = 0; init < data.numClasses(); init ++){
+             	classCount[init] = 0;
             }
-
-            //count instances in classes.
-            for (int i = 0; i < data.numInstances(); i++) {
-                //cumpute how frequent a class is.
-                classCount[(int) data.instance(i).classValue()]++;
-            }
-
-            for (double aClassCount : classCount) {
-                double p = aClassCount / data.numInstances();
-                //for each class result - P(C1)^2.. loop and do P(C2)^2.. and so on
-                nodeResult = nodeResult - (p * p);
-            }
-
-            gini += ((double) splitData.length / (double) data.size()) * nodeResult;
+        	
+        	//count instances in classes.
+     	   for(int i = 0; i < data.numInstances(); i++){
+     	        //cumpute how frequent a class is.
+     	       	classCount[(int) data.instance(i).classValue()]++;       
+     	  }
+     	   for(int x = 0; x < classCount.length; x ++){
+     		   double p = classCount[x] /  data.numInstances();
+     		   //for each class result - P(C1)^2.. loop and do P(C2)^2.. and so on
+     		  nodeResult = nodeResult -  ( p * p );
+     	   }
+     	  gini += ((double)splitData.length  / (double) data.size()) * nodeResult;
         }
     	return gini;
     }
@@ -480,9 +517,9 @@ public class Grupp3Labb1
     private double computeSplitInfo(Instances data, Attribute att){
     	Instances[] splitData = getSplitData(data, att);
     	double splitInfo = 0.0;
-        for (Instances aSplitData : splitData) {
-            splitInfo -= (aSplitData.numInstances() / data.numInstances()) * Math.log(aSplitData.numInstances() / data.numInstances());
-        }
+    	for(int i = 0; i < splitData.length; i++){
+    		splitInfo -= (splitData[i].numInstances() / data.numInstances()) * Math.log(splitData[i].numInstances() / data.numInstances());
+    	}
     	return splitInfo;
     }
 
@@ -498,14 +535,11 @@ public class Grupp3Labb1
             throws Exception {
         double infoGain = computeEntropy(data);
         Instances[] splitData = getSplitData(data, att);
-
-        if(splitData != null) {
-            for (int j = 0; j < att.numValues(); j++) {
-                if (splitData[j].numInstances() > 0) {
-                    infoGain -= ((double) splitData[j].numInstances()
-                            / (double) data.numInstances())
-                            * computeEntropy(splitData[j]);
-                }
+        for (int j = 0; j < att.numValues(); j++) {
+            if (splitData[j].numInstances() > 0) {
+                infoGain -= ((double) splitData[j].numInstances()
+                        / (double) data.numInstances())
+                        * computeEntropy(splitData[j]);
             }
         }
         return infoGain;
