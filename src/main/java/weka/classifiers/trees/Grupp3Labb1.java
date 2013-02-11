@@ -112,7 +112,7 @@ public class Grupp3Labb1
     /** Minimum number of instances in leafs*/
     private int m_minNumObj = 2;
     /** The minimum leaf size */
-    private double m_MinimumLeafSize;
+    private static double m_MinimumLeafSize;
     /** The majority class */
     private static int m_MajorityClass;
     /** The spliting method */
@@ -237,14 +237,21 @@ public class Grupp3Labb1
         }
         m_Attribute = data.attribute(Utils.maxIndex(bestAttr));
 
-
-        // Make leaf if information gain is zero. 
+        Instances[] splitData = getSplitData(data, m_Attribute);
+        // Make leaf if information gain is zero || if gini is not getting better || 70% of all values are the same
+        //TODO: Styra lövstorlek
+        //
+        //percentTheSame(splitData,7);
         // Otherwise create successors.
         if (Utils.eq(bestAttr[m_Attribute.index()], 0)) {
             makeLeaf(data);
         } else {
-            Instances[] splitData = getSplitData(data, m_Attribute);
+
+
             m_Successors = new Grupp3Labb1[m_Attribute.numValues()];
+            //Shall we make more instances?
+
+
             for (int j = 0; j < m_Attribute.numValues(); j++) {
                 m_Successors[j] = new Grupp3Labb1();
                 m_Successors[j].makeTree(splitData[j]);
@@ -252,6 +259,53 @@ public class Grupp3Labb1
 
             }
         }
+    }
+
+    private boolean percentTheSame(Instances[] data, int percent){
+        /*
+        ArrayList array = new ArrayList();
+        for(int i = 0; i < data.length; i++){
+            for(int j = 0; j < data[i].numAttributes(); j++){
+                array.add(data[i].instance(i).attribute(j).);
+            }
+            //data[i].instance(i).classAttribute().value()
+        }
+        */
+
+
+        ArrayList array = new ArrayList();
+
+        for(int i = 0; i < data.length; i++){
+            for(int j = 0; j < data[i].numAttributes(); j++){
+                for(int k = 0; k < data[i].attribute(j).numValues(); k++){
+                    array.add(data[i].instance(j).attribute(j).value(k));
+                }
+            }
+        }
+        /*
+        double mostCommonValue = 0;
+        int count = 0;
+
+        for(int i = 0; i < instance.numAttributes(); i++) {
+            int currentCount = 0;
+            double currentValue = instance.value(i);
+            double comparedValue;
+
+            for(int j = 0; j < instance.numAttributes(); j++){
+            comparedValue = instance.value(j);
+            if(currentValue == comparedValue)
+            currentCount++;
+            }
+            if(currentCount > count){
+                count = currentCount;
+                mostCommonValue =  currentValue;
+             }
+
+             //return mostCommonValue;
+        }
+        return false;
+        */
+        return false;
     }
 
     /**
@@ -322,8 +376,8 @@ public class Grupp3Labb1
      * @return the value to fill the missing
      */
     private double handleMissingValue(Instance instance) {
-        //return m_MajorityClass; // Could be used
-        return getMostCommonValue(instance);
+        return m_MajorityClass; // Could be used
+        //return getMostCommonValue(instance);
     }
 
     /**
@@ -401,6 +455,14 @@ public class Grupp3Labb1
         throw new Exception("ComputeAttributeValue: Unreachable code");
     }
 
+    /**
+     * TODO: No need
+     *
+     * @param data the data for which info gain is to be computed
+     * @param att the attribute
+     * @return TODO: comment
+     * @throws Exception if computation fails
+     */
     private void addToPreviousGinis(double gini){
         int len = previousGinis.length;
         if(previousGinis[0] == 0.0){
