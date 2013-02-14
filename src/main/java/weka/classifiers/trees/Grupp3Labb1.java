@@ -363,7 +363,10 @@ public class Grupp3Labb1
                 printDebugMessage("InfoGain: " + infoGain);
                 printDebugMessage("SplitInfo: " + splitInfo);
                 printDebugMessage("GainRatio: " + infoGain/splitInfo);
-                return infoGain / splitInfo;
+                if(splitInfo != 0)
+                    return infoGain / splitInfo;
+                else
+                    return 0;
             case 1: //GiniIndex
                 double giniIndex = computeGiniIndex(data, att);
                 printDebugMessage("GiniIndex: " + giniIndex);
@@ -417,9 +420,14 @@ public class Grupp3Labb1
      */
     private double computeSplitInfo(Instances data, Attribute att){
     	Instances[] splitData = getSplitData(data, att);
-    	double splitInfo = 0.0;
+        double splitInfo = 0.0;
+
         for (Instances aSplitData : splitData) {
-            splitInfo -= (aSplitData.numInstances() / data.numInstances()) * Math.log(aSplitData.numInstances() / data.numInstances());
+            if((aSplitData.numInstances() / data.numInstances()) <= 0)
+                continue;
+            //splitInfo -= (aSplitData.numInstances() / data.numInstances()) * Math.log(aSplitData.numInstances() / data.numInstances());
+            double sInfo = aSplitData.numInstances() / data.numInstances();
+            splitInfo -= sInfo * Utils.log2(sInfo);
         }
     	return splitInfo;
     }
@@ -446,6 +454,7 @@ public class Grupp3Labb1
                 }
             }
         }
+
         return infoGain;
     }
 
@@ -470,6 +479,8 @@ public class Grupp3Labb1
             }
         }
         entropy /= (double) data.numInstances();
+        if(data.numInstances() <= 0)
+            return 0;
         return entropy + Utils.log2(data.numInstances());
     }
 
