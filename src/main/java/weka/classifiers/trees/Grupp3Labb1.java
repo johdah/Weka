@@ -124,7 +124,7 @@ public class Grupp3Labb1
     /** Binary splits on nominal attributes? */
     private boolean m_UseBinarySplits;
 
-    private double[] previousGinis = new double[10];
+    int numberOfSplitsInterval = 3;
 
     /**
      * Returns a string describing the classifier.
@@ -261,52 +261,6 @@ public class Grupp3Labb1
         }
     }
 
-    private boolean percentTheSame(Instances[] data, int percent){
-        /*
-        ArrayList array = new ArrayList();
-        for(int i = 0; i < data.length; i++){
-            for(int j = 0; j < data[i].numAttributes(); j++){
-                array.add(data[i].instance(i).attribute(j).);
-            }
-            //data[i].instance(i).classAttribute().value()
-        }
-        */
-
-
-        ArrayList array = new ArrayList();
-
-        for(int i = 0; i < data.length; i++){
-            for(int j = 0; j < data[i].numAttributes(); j++){
-                for(int k = 0; k < data[i].attribute(j).numValues(); k++){
-                    array.add(data[i].instance(j).attribute(j).value(k));
-                }
-            }
-        }
-        /*
-        double mostCommonValue = 0;
-        int count = 0;
-
-        for(int i = 0; i < instance.numAttributes(); i++) {
-            int currentCount = 0;
-            double currentValue = instance.value(i);
-            double comparedValue;
-
-            for(int j = 0; j < instance.numAttributes(); j++){
-            comparedValue = instance.value(j);
-            if(currentValue == comparedValue)
-            currentCount++;
-            }
-            if(currentCount > count){
-                count = currentCount;
-                mostCommonValue =  currentValue;
-             }
-
-             //return mostCommonValue;
-        }
-        return false;
-        */
-        return false;
-    }
 
     /**
      * Create leaf
@@ -380,58 +334,6 @@ public class Grupp3Labb1
         //return getMostCommonValue(instance);
     }
 
-    /**
-     * @param instance current instance
-     * @return the most common value
-     */
-    private double getMostCommonValue(Instance instance) {
-        double mostCommonValue = 0;
-        int count = 0;
-
-        for(int i = 0; i < instance.numAttributes(); i++) {
-            int currentCount = 0;
-            double currentValue = instance.value(i);
-            double comparedValue;
-
-            for(int j = 0; j < instance.numAttributes(); j++){
-                comparedValue = instance.value(j);
-                if(currentValue == comparedValue)
-                    currentCount++;
-            }
-            if(currentCount > count){
-                count = currentCount;
-                mostCommonValue =  currentValue;
-            }
-        }
-
-        /*for(int a  = 0; a < instance.numAttributes(); a++){
-            printDebugMessage(instance.value(a) + "");
-        }
-        printDebugMessage("m_MajorityClass:");
-        printDebugMessage(m_MajorityClass + "");
-        printDebugMessage("mostCommonValue:");
-        printDebugMessage(mostCommonValue + "");*/
-
-        return mostCommonValue;
-    }
-
-    /**
-     * TODO: Work in progress
-     * @param data an instance array
-     * @return true if most of the values are the same
-     */
-    boolean isMostOfTheValuesSame(Instances[] data){
-        ArrayList<String> instances = new ArrayList<String>();
-
-        for (Instances aData : data) {
-            for (int j = 0; j < aData.numAttributes(); j++) {
-                for (int k = 0; k < aData.attribute(j).numValues(); k++) {
-                    instances.add(aData.attribute(k).value(k));
-                }
-            }
-        }
-        return false;
-    }
 
     /**
      * TODO: Comment
@@ -442,34 +344,23 @@ public class Grupp3Labb1
      * @throws Exception if computation fails
      */
     private double computeAttributeValue(Instances data, Attribute att) throws Exception {
+        //Set the number of splits
+        if (data.numInstances() / 50 > numberOfSplitsInterval) {
+            numberOfSplitsInterval = data.numInstances() / 50;
+        }
+
         switch (m_SplitMethod) {
             case 0: //GainRatio
                 double infoGain = computeInfoGain(data, att);
                 double splitInfo = computeSplitInfo(data, att);
-                return infoGain / splitInfo;                
+                return infoGain / splitInfo;
             case 1: //GiniIndex
-                double gini = ComputeGiniIndex(data, att);
-                addToPreviousGinis(gini);
                 return ComputeGiniIndex(data, att);
         }
         throw new Exception("ComputeAttributeValue: Unreachable code");
     }
 
-    /**
-     * TODO: No need
-     *
-     * @param data the data for which info gain is to be computed
-     * @param att the attribute
-     * @return TODO: comment
-     * @throws Exception if computation fails
-     */
-    private void addToPreviousGinis(double gini){
-        int len = previousGinis.length;
-        if(previousGinis[0] == 0.0){
 
-        }
-
-    }
 
     /**
      * TODO: Comment
@@ -666,13 +557,79 @@ public class Grupp3Labb1
         return splitData;
     }
 
-    /**
+    /**  TODO: toBefinished, maybe trash!
      * @param data the data which is to be split
      * @param att the attribute to be used for splitting
      * @return the sets of instances produced by the split
      */
     private Instances[] splitDataNumeric(Instances data, Attribute att) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        //HERE
+        //int numberOfSplitsIntervall = 3; //Can be from 2-7 (Do not make this constant)
+
+        ArrayList<Double> values = new ArrayList<Double>();
+        for(int i = 0; i < data.numInstances(); i++){
+            for(int j = 0; j < data.instance(i).numValues(); j++){
+                values.add(data.instance(i).value(j));
+            }
+        }
+
+        //Sort the list
+        double temp;
+        for(int i = 0; i < values.size(); i++){
+            for(int j = 0; j < values.size()-1; j++){
+                if(values.get(j) > values.get(j+1)){
+                    temp = values.get(j);
+                    values.set(j, values.get(j+1));
+                    values.set(j+1, temp);
+                }
+            }
+        }
+
+        //Get the highest value
+        double highestValue = values.get(values.size()-1);
+        //Get the lowest value
+
+        double lowestValue = values.get(0);
+
+        double result = (highestValue + lowestValue) / numberOfSplitsInterval;
+
+        Instances[] splitData = new Instances[numberOfSplitsInterval];
+        for(int i = 0; i < numberOfSplitsInterval; i++){
+            splitData[i] = new Instances(data,data.numInstances());
+        }
+
+        Enumeration instEnum = data.enumerateInstances();
+        while(instEnum.hasMoreElements()){
+            Instance inst = (Instance) instEnum.nextElement();
+            boolean flag = false;
+
+            if(inst.value(att) == Double.NaN){
+                if(splitData[0].numInstances() <= splitData[1].numInstances()){
+                    splitData[0].add(inst);
+                }else{
+                    splitData[numberOfSplitsInterval - 1].add(inst);
+                }
+            }
+
+            for(int i = 0; i < numberOfSplitsInterval-1; i++){
+                double tmpValue = result * (i+1);
+                if(inst.value(att) <= tmpValue){
+                    splitData[i].add(inst);
+                    flag = true;
+                    break;
+                }
+            }
+
+            if(!flag)
+                splitData[numberOfSplitsInterval -1].add(inst);
+        }
+        for (Instances aSplitData : splitData) {
+            aSplitData.compactify();
+        }
+        return splitData;
+
+        //Return mellan vilka värden som den specifica instancen ska ligga mellan
+
     }
 
     /**
