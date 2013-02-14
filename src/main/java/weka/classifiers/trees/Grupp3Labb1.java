@@ -573,6 +573,7 @@ public class Grupp3Labb1
         }
         splitData[0].compactify();
         splitData[1].compactify();
+        splitIndex[0] = splitValue;
        // this.m_Attribute = att.; denna måste sättas.... kommer inte fugnera..
         return splitData;
     }
