@@ -347,54 +347,6 @@ public class Grupp3Labb1
      */
     private double handleMissingValue(Instance instance) {
         return m_MajorityClass; // Could be used
-        //return getMostCommonValue(instance);
-    }
-
-    /**
-     * TODO: Can we delete
-     * @param instance current instance
-     * @return the most common value
-     */
-    private double getMostCommonValue(Instance instance) {
-        double mostCommonValue = 0;
-        int count = 0;
-
-        for(int i = 0; i < instance.numAttributes(); i++) {
-            int currentCount = 0;
-            double currentValue = instance.value(i);
-            double comparedValue;
-
-            for(int j = 0; j < instance.numAttributes(); j++){
-                comparedValue = instance.value(j);
-                if(currentValue == comparedValue)
-                    currentCount++;
-            }
-            if(currentCount > count){
-                count = currentCount;
-                mostCommonValue =  currentValue;
-            }
-        }
-
-        return mostCommonValue;
-    }
-
-    /**
-     * TODO: Work in progress
-     * TODO: Delete?
-     * @param data an instance array
-     * @return true if most of the values are the same
-     */
-    boolean isMostOfTheValuesSame(Instances[] data){
-        ArrayList<String> instances = new ArrayList<String>();
-
-        for (Instances aData : data) {
-            for (int j = 0; j < aData.numAttributes(); j++) {
-                for (int k = 0; k < aData.attribute(j).numValues(); k++) {
-                    instances.add(aData.attribute(k).value(k));
-                }
-            }
-        }
-        return false;
     }
 
     /**
