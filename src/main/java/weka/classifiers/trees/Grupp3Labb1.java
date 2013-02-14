@@ -110,7 +110,7 @@ public class Grupp3Labb1
     /** Class attribute of dataset. */
     private Attribute m_ClassAttribute;
     /** Minimum number of instances in leafs*/
-    private int m_minNumObj = 2;
+    //private int m_minNumObj = 2;
     /** The minimum leaf size */
     private static double m_MinimumLeafSize;
     /** The majority class */
@@ -124,7 +124,7 @@ public class Grupp3Labb1
     /** Binary splits on nominal attributes? */
     private boolean m_UseBinarySplits;
 
-    int numberOfSplitsInterval = 3;
+    int m_NumberOfSplits = 3;
     private double[] splitIndex;
 
     /**
@@ -267,12 +267,10 @@ public class Grupp3Labb1
             m_Successors = new Grupp3Labb1[m_Attribute.numValues()];
             // TODO: Shall we make more instances?
 
-
             for (int j = 0; j < m_Attribute.numValues(); j++) {
                 m_Successors[j] = new Grupp3Labb1();
                 m_Successors[j].makeTree(splitData[j]);
                 m_Successors[j].setMinimumLeafSize(m_MinimumLeafSize);
-
             }
         }
     }
@@ -310,7 +308,7 @@ public class Grupp3Labb1
             throws NoSupportForMissingValuesException {
 
         if (instance.hasMissingValue()) {
-            return handleMissingValue(instance);
+            return handleMissingValue();
         }
 
         if (m_Attribute == null) {
@@ -332,7 +330,7 @@ public class Grupp3Labb1
     public double[] distributionForInstance(Instance instance)
             throws NoSupportForMissingValuesException {
         if (instance.hasMissingValue()) {
-            instance.setClassValue(handleMissingValue(instance));
+            instance.setClassValue(handleMissingValue());
         }
         if (m_Attribute == null) {
             return m_Distribution;
@@ -343,14 +341,11 @@ public class Grupp3Labb1
 
     /**
      * Handle missing value
-     * @param instance current instance
      * @return the value to fill the missing
      */
-    private double handleMissingValue(Instance instance) {
+    private double handleMissingValue() {
         return m_MajorityClass; // Could be used
-        //return getMostCommonValue(instance);
     }
-
 
     /**
     /**
@@ -362,11 +357,6 @@ public class Grupp3Labb1
      * @throws Exception if computation fails
      */
     private double computeAttributeValue(Instances data, Attribute att) throws Exception {
-        //Set the number of splits
-        if (data.numInstances() / 50 > numberOfSplitsInterval) {
-            numberOfSplitsInterval = data.numInstances() / 50;
-        }
-
         switch (m_SplitMethod) {
             case 0: //GainRatio
                 double infoGain = computeInfoGain(data, att);
@@ -397,6 +387,7 @@ public class Grupp3Labb1
     	Instances[] splitData = getSplitData(data, att);
     	double gini = 0;
 
+        // TODO: Why iterate splitData if not using result?
         for (Instances aSplitData : splitData) {
             //for each node..
             double nodeResult = 1.0;
@@ -638,8 +629,7 @@ public class Grupp3Labb1
      * @return the sets of instances produced by the split
      */
     private Instances[] splitDataNumeric(Instances data, Attribute att) {
-        //HERE
-        //int numberOfSplitsIntervall = 3; //Can be from 2-7 (Do not make this constant)
+        // TODO: int numberOfSplitsIntervall = 3; //Can be from 2-7 (Do not make this constant)
 
         ArrayList<Double> values = new ArrayList<Double>();
         for(int i = 0; i < data.numInstances(); i++){
@@ -666,11 +656,13 @@ public class Grupp3Labb1
 
         double lowestValue = values.get(0);
 
-        double result = (highestValue + lowestValue) / numberOfSplitsInterval;
+        double result = (highestValue + lowestValue) / m_NumberOfSplits;
 
-        Instances[] splitData = new Instances[numberOfSplitsInterval];
-        for(int i = 0; i < numberOfSplitsInterval; i++){
+        Instances[] splitData = new Instances[m_NumberOfSplits];
+        int i = 0;
+        while (i < m_NumberOfSplits) {
             splitData[i] = new Instances(data,data.numInstances());
+            i++;
         }
 
         Enumeration instEnum = data.enumerateInstances();
@@ -682,21 +674,23 @@ public class Grupp3Labb1
                 if(splitData[0].numInstances() <= splitData[1].numInstances()){
                     splitData[0].add(inst);
                 }else{
-                    splitData[numberOfSplitsInterval - 1].add(inst);
+                    splitData[m_NumberOfSplits - 1].add(inst);
                 }
             }
 
-            for(int i = 0; i < numberOfSplitsInterval-1; i++){
+            i = 0;
+            while (i < m_NumberOfSplits -1) {
                 double tmpValue = result * (i+1);
                 if(inst.value(att) <= tmpValue){
                     splitData[i].add(inst);
                     flag = true;
                     break;
                 }
+                i++;
             }
 
             if(!flag)
-                splitData[numberOfSplitsInterval -1].add(inst);
+                splitData[m_NumberOfSplits -1].add(inst);
         }
         for (Instances aSplitData : splitData) {
             aSplitData.compactify();
