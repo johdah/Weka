@@ -704,8 +704,6 @@ public class Grupp3Labb1
         }
         return splitData;
 
-        //Return mellan vilka värden som den specifica instancen ska ligga mellan
-
     }
 
     /**
