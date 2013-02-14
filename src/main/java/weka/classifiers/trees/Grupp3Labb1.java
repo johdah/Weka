@@ -124,7 +124,6 @@ public class Grupp3Labb1
     /** Binary splits on nominal attributes? */
     private boolean m_UseBinarySplits;
 
-    private double[] previousGinis = new double[10];
     private double[] splitIndex;
 
     /**
@@ -343,7 +342,6 @@ public class Grupp3Labb1
      * Handle missing value
      * @param instance current instance
      * @return the value to fill the missing
-     * TODO: Should we use m_MajorityClass
      */
     private double handleMissingValue(Instance instance) {
         return m_MajorityClass; // Could be used
@@ -368,23 +366,10 @@ public class Grupp3Labb1
                 return infoGain / splitInfo;
             case 1: //GiniIndex
                 double giniIndex = computeGiniIndex(data, att);
-                addToPreviousGinis(giniIndex);
                 printDebugMessage("GiniIndex: " + giniIndex);
                 return giniIndex;
         }
         throw new Exception("ComputeAttributeValue: Unreachable code");
-    }
-
-    /*
-     * TODO: No need
-     *
-     * @param gini
-     */
-    private void addToPreviousGinis(double gini){
-        int len = previousGinis.length;
-        if(previousGinis[0] == 0.0){
-
-        }
     }
 
     /**
