@@ -124,6 +124,7 @@ public class Grupp3Labb1
     /** Binary splits on nominal attributes? */
     private boolean m_UseBinarySplits;
 
+    int numberOfSplitsInterval = 3;
     private double[] splitIndex;
 
     /**
@@ -266,10 +267,12 @@ public class Grupp3Labb1
             m_Successors = new Grupp3Labb1[m_Attribute.numValues()];
             // TODO: Shall we make more instances?
 
+
             for (int j = 0; j < m_Attribute.numValues(); j++) {
                 m_Successors[j] = new Grupp3Labb1();
                 m_Successors[j].makeTree(splitData[j]);
                 m_Successors[j].setMinimumLeafSize(m_MinimumLeafSize);
+
             }
         }
     }
@@ -305,6 +308,7 @@ public class Grupp3Labb1
      */
     public double classifyInstance(Instance instance)
             throws NoSupportForMissingValuesException {
+
         if (instance.hasMissingValue()) {
             return handleMissingValue(instance);
         }
@@ -330,7 +334,6 @@ public class Grupp3Labb1
         if (instance.hasMissingValue()) {
             instance.setClassValue(handleMissingValue(instance));
         }
-
         if (m_Attribute == null) {
             return m_Distribution;
         } else {
@@ -345,8 +348,11 @@ public class Grupp3Labb1
      */
     private double handleMissingValue(Instance instance) {
         return m_MajorityClass; // Could be used
+        //return getMostCommonValue(instance);
     }
 
+
+    /**
     /**
      * TODO: Comment
      *
@@ -356,6 +362,11 @@ public class Grupp3Labb1
      * @throws Exception if computation fails
      */
     private double computeAttributeValue(Instances data, Attribute att) throws Exception {
+        //Set the number of splits
+        if (data.numInstances() / 50 > numberOfSplitsInterval) {
+            numberOfSplitsInterval = data.numInstances() / 50;
+        }
+
         switch (m_SplitMethod) {
             case 0: //GainRatio
                 double infoGain = computeInfoGain(data, att);
@@ -497,6 +508,7 @@ public class Grupp3Labb1
 
     /**
      * Splits a dataset binarily, according to the values of a nominal attribute.
+     * TODO: Work in progress - Johan
      *
      * @param data the data that is to be split
      * @param att the attribute to be used for splitting
@@ -626,7 +638,71 @@ public class Grupp3Labb1
      * @return the sets of instances produced by the split
      */
     private Instances[] splitDataNumeric(Instances data, Attribute att) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        //HERE
+        //int numberOfSplitsIntervall = 3; //Can be from 2-7 (Do not make this constant)
+
+        ArrayList<Double> values = new ArrayList<Double>();
+        for(int i = 0; i < data.numInstances(); i++){
+            for(int j = 0; j < data.instance(i).numValues(); j++){
+                values.add(data.instance(i).value(j));
+            }
+        }
+
+        //Sort the list
+        double temp;
+        for(int i = 0; i < values.size(); i++){
+            for(int j = 0; j < values.size()-1; j++){
+                if(values.get(j) > values.get(j+1)){
+                    temp = values.get(j);
+                    values.set(j, values.get(j+1));
+                    values.set(j+1, temp);
+                }
+            }
+        }
+
+        //Get the highest value
+        double highestValue = values.get(values.size()-1);
+        //Get the lowest value
+
+        double lowestValue = values.get(0);
+
+        double result = (highestValue + lowestValue) / numberOfSplitsInterval;
+
+        Instances[] splitData = new Instances[numberOfSplitsInterval];
+        for(int i = 0; i < numberOfSplitsInterval; i++){
+            splitData[i] = new Instances(data,data.numInstances());
+        }
+
+        Enumeration instEnum = data.enumerateInstances();
+        while(instEnum.hasMoreElements()){
+            Instance inst = (Instance) instEnum.nextElement();
+            boolean flag = false;
+
+            if(inst.value(att) == Double.NaN){
+                if(splitData[0].numInstances() <= splitData[1].numInstances()){
+                    splitData[0].add(inst);
+                }else{
+                    splitData[numberOfSplitsInterval - 1].add(inst);
+                }
+            }
+
+            for(int i = 0; i < numberOfSplitsInterval-1; i++){
+                double tmpValue = result * (i+1);
+                if(inst.value(att) <= tmpValue){
+                    splitData[i].add(inst);
+                    flag = true;
+                    break;
+                }
+            }
+
+            if(!flag)
+                splitData[numberOfSplitsInterval -1].add(inst);
+        }
+        for (Instances aSplitData : splitData) {
+            aSplitData.compactify();
+        }
+        return splitData;
+
     }
 
     /**
