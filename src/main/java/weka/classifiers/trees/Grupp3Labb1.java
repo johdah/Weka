@@ -423,11 +423,10 @@ public class Grupp3Labb1
         double splitInfo = 0.0;
 
         for (Instances aSplitData : splitData) {
-            if((aSplitData.numInstances() / data.numInstances()) <= 0)
+            double sInfo = aSplitData.numInstances() / (float)data.numInstances();
+            if(sInfo <= 0)
                 continue;
-            //splitInfo -= (aSplitData.numInstances() / data.numInstances()) * Math.log(aSplitData.numInstances() / data.numInstances());
-            double sInfo = aSplitData.numInstances() / data.numInstances();
-            splitInfo -= sInfo * Utils.log2(sInfo);
+            splitInfo -= sInfo * Math.log(sInfo);
         }
     	return splitInfo;
     }
