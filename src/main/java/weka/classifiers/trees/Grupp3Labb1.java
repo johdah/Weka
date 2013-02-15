@@ -557,7 +557,56 @@ public class Grupp3Labb1
      * @return Best split produced
      */
     private Instances[] binarySplitDataNominal(Instances data, Attribute att) {
-        throw new UnsupportedOperationException("Not yet implemented");
+    	Instances[] splitData = new Instances[2];
+        splitData[0] = data.stringFreeStructure();
+        splitData[1] = data.stringFreeStructure();
+        //binary split data structure.
+        
+        //for each way of splitting calculate gainratio value, pick splitt with best gainratio.
+        //Check the gainratio value for all attValues.
+        /*double[] gainValues = new double[att.numValues()];
+        int gainIndex = 0;
+        Enumeration instEnum = att.enumerateValues(); 
+        while (instEnum.hasMoreElements()) {
+            Attribute attr = (Attribute) instEnum.nextElement();
+            this.m_Attribute = attr;
+            try {
+				gainValues[gainIndex] = computeInfoGain(data, att) / computeSplitInfo(data, att);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return null;
+			}
+            gainIndex++;
+        }
+        double splitValue = Utils.maxIndex(gainValues);    
+        */
+        //splitt on the value with most occurance, this will make the split taht removes the most instances.
+        int[] attCounts = new int[att.numValues()];
+        Enumeration instEnum = data.enumerateInstances(); 
+        while (instEnum.hasMoreElements()) {
+            Instance inst = (Instance) instEnum.nextElement();
+            attCounts[(int) inst.value(att)]++;
+        }
+        //Pick the value with the most occurances to be the value to split upon
+        double splitValue = Utils.maxIndex(attCounts);  
+        
+        
+        
+        
+        //split the instances in data depending on splitValue.
+        for(Instance inst : data){
+            if(inst.value(att) == splitValue){ 
+                splitData[0].add(inst);
+            }else{
+                splitData[1].add(inst);
+            }
+        }
+        splitData[0].compactify();
+        splitData[1].compactify();
+        splitIndex[0] = splitValue;
+       // this.m_Attribute = att.; denna måste sättas.... kommer inte fugnera..
+        return splitData;
     }
 
     /**
