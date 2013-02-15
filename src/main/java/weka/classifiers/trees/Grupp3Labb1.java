@@ -271,7 +271,7 @@ public class Grupp3Labb1
             m_Successors = new Grupp3Labb1[m_Attribute.numValues()];
             // TODO: Shall we make more instances?
 
-            for (int j = 0; j < m_Attribute.numValues(); j++) {
+            for (int j = 0; j < splitData.length; j++) {
                 m_Successors[j] = new Grupp3Labb1();
                 m_Successors[j].makeTree(splitData[j]);
                 m_Successors[j].setMinimumLeafSize(m_MinimumLeafSize);
@@ -463,7 +463,7 @@ public class Grupp3Labb1
             double sInfo = aSplitData.numInstances() / (float)data.numInstances();
             if(sInfo <= 0.0)
                 continue;
-            splitInfo -= sInfo * Math.log(sInfo);
+            splitInfo -= sInfo * Utils.log2(sInfo);
         }
     	return splitInfo;
     }
@@ -482,7 +482,7 @@ public class Grupp3Labb1
         Instances[] splitData = getSplitData(data, att);
 
         if(splitData != null) {
-            for (int j = 0; j < att.numValues(); j++) {
+            for (int j = 0; j < splitData.length; j++) {
                 if (splitData[j].numInstances() > 0) {
                     infoGain -= ((double) splitData[j].numInstances()
                             / (double) data.numInstances())
