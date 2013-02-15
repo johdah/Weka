@@ -320,7 +320,6 @@ public class Grupp3Labb1
     }
 
     /**
-     * TODO: Bad for binary
      * Computes class distribution for instance using decision tree.
      *
      * @param instance the instance for which distribution is to be computed
@@ -329,14 +328,46 @@ public class Grupp3Labb1
      */
     public double[] distributionForInstance(Instance instance)
             throws NoSupportForMissingValuesException {
-        if (instance.hasMissingValue()) {
-            instance.setClassValue(handleMissingValue());
-        }
+        int index = 0;
+
         if (m_Attribute == null) {
             return m_Distribution;
         } else {
-            return m_Successors[(int) instance.value(m_Attribute)].distributionForInstance(instance);
+            if(instance.isMissing(m_Attribute))
+                instance.setValue(m_Attribute, handleMissingValue());
+
+            if(m_UseBinarySplits) {
+                if(m_Attribute.isNumeric()) {
+                    int value = (int) instance.value(m_Attribute);
+                    for(int i = 0; i < splitIndex.length; i++) {
+                        if(instance.value(m_Attribute) <= splitIndex[i]) {
+                            index = i;
+                            break;
+                        }
+                    }
+                } else {
+                    double value = instance.value(m_Attribute);
+                    if(value == splitIndex[0])
+                        index = 0;
+                    else
+                        index = 1;
+                }
+            } else {
+                if(m_Attribute.isNumeric()) {
+                    double value = instance.value(m_Attribute);
+                    for(int i = 0; i < splitIndex.length; i++) {
+                        if(value <= splitIndex[i]) {
+                            index = i;
+                            break;
+                        }
+                    }
+                } else {
+                    index = (int) instance.value(m_Attribute);
+                }
+            }
         }
+
+        return m_Successors[index].distributionForInstance(instance);
     }
 
     /**
