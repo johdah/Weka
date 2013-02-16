@@ -372,7 +372,12 @@ public class Grupp3Labb1
         }
 
         //TODO: NPE
-        return m_Successors[index].distributionForInstance(instance);
+        try {
+            return m_Successors[index].distributionForInstance(instance);
+        } catch(Exception e) {
+            e.printStackTrace();
+            return m_Successors[index].distributionForInstance(instance);
+        }
     }
 
     /**
