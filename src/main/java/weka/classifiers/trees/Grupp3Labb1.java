@@ -112,7 +112,7 @@ public class Grupp3Labb1
     /** Minimum number of instances in leafs*/
     //private int m_minNumObj = 2;
     /** The minimum leaf size */
-    private static double m_MinimumLeafSize;
+    private double m_MinimumLeafSize;
     /** The majority class */
     private static int m_MajorityClass;
     /** The spliting method */
@@ -120,7 +120,7 @@ public class Grupp3Labb1
         new Tag(0, "GainRatio"),
         new Tag(1, "GiniIndex")
     };
-    public static int m_SplitMethod = 0;
+    public int m_SplitMethod = 0;
     /** Binary splits on nominal attributes? */
     private boolean m_UseBinarySplits;
 
@@ -222,7 +222,8 @@ public class Grupp3Labb1
      */
     private void makeTree(Instances data) throws Exception {
         if(m_UseBinarySplits){
-            splitValues = new double[1];
+            m_NumberOfSplits = 2;
+            splitValues = new double[m_NumberOfSplits];
         }else{
             splitValues = new double[data.numAttributes()-1];
         }
@@ -241,42 +242,61 @@ public class Grupp3Labb1
         // Compute attribute with maximum information gain.
         double[] bestAttr = new double[data.numAttributes()];
         Enumeration attEnum = data.enumerateAttributes();
-
-        if (m_SplitMethod == 0) {
-            printDebugMessage("\nGainRatio for Atributes:");
-        } else {
-            printDebugMessage("\nGiniIndex for Atributes:");
-        }
-
         while (attEnum.hasMoreElements()) {
             Attribute att = (Attribute) attEnum.nextElement();
             bestAttr[att.index()] = computeAttributeValue(data, att);
             printDebugMessage("\n" + att.index() + ": " + bestAttr[att.index()]);
-        }
-        m_Attribute = data.attribute(Utils.maxIndex(bestAttr));
+        };
 
         if (m_SplitMethod == 0) {
             m_Attribute = data.attribute(Utils.maxIndex(bestAttr));
+            printDebugMessage("\nGainRatio for Atributes:");
         } else {
             m_Attribute = data.attribute(Utils.minIndex(bestAttr));
+            printDebugMessage("\nGiniIndex for Atributes:");
         }
         printDebugMessage("\nChoosing: " + m_Attribute.index() + " (" + m_Attribute.name() + ")\n");
 
-        // Make leaf if information gain is zero. 
-        // Otherwise create successors.
-        if (Utils.eq(bestAttr[m_Attribute.index()], 0) || data.numInstances() <= m_MinimumLeafSize) {
+        //m_MostCommonValue = data.meanOrMode(m_Attribute
+
+        Instances[] splitData = getSplitData(data, m_Attribute);
+        //if (Utils.eq(bestAttr[m_Attribute.index()], 0) || data.numInstances() <= m_MinimumLeafSize) {
+        if((Utils.eq(bestAttr[m_Attribute.index()], 0) && !minLeafSize(splitData))
+                || (m_SplitMethod == 1 && !minLeafSize(splitData))) {
             makeLeaf(data);
         } else {
-            Instances[] splitData = getSplitData(data, m_Attribute);
-            m_Successors = new Grupp3Labb1[m_Attribute.numValues()];
-            // TODO: Shall we make more instances?
+            m_Successors = new Grupp3Labb1[splitData.length];
 
-            for (int j = 0; j < splitData.length; j++) {
-                m_Successors[j] = new Grupp3Labb1();
-                m_Successors[j].makeTree(splitData[j]);
-                m_Successors[j].setMinimumLeafSize(m_MinimumLeafSize);
+            for (int i = 0; i < splitData.length; i++) {
+                if(splitData[i].numInstances() >= m_MinimumLeafSize) {
+                    m_Successors[i] = new Grupp3Labb1();
+                    m_Successors[i].m_Debug = m_Debug;
+                    m_Successors[i].m_MinimumLeafSize = m_MinimumLeafSize;
+                    m_Successors[i].m_SplitMethod = m_SplitMethod;
+                    m_Successors[i].m_UseBinarySplits = m_UseBinarySplits;
+                    m_Successors[i].makeTree(splitData[i]);
+                }
             }
         }
+    }
+
+    /**
+     * @param data, a split of instances
+     * @return true if no instance has fewer than allowed in a leaf
+     * otherwise false. If a node has fewer instances than allowed
+     * it's discarded(null).
+     */
+    private boolean minLeafSize(Instances[] data) {
+        if(data == null)
+            return false;
+        boolean check = true;
+        for (Instances instances : data) {
+            if(instances == null || instances.numInstances() <= m_MinimumLeafSize){
+                instances = null;
+                check = false;
+            }
+        }
+        return check;
     }
 
     /**
@@ -374,7 +394,7 @@ public class Grupp3Labb1
      * @return the value to fill the missing
      */
     private double handleMissingValue() {
-        return m_MajorityClass; // Could be used
+        return m_MajorityClass;
     }
 
     /**
@@ -615,7 +635,6 @@ public class Grupp3Labb1
     private Instances[] binarySplitDataNumeric(Instances data, Attribute att) {
         double maxValue = Double.NEGATIVE_INFINITY, minValue = Double.POSITIVE_INFINITY;
         Instance inst;
-        m_NumberOfSplits = 2;
 
         Instances[] splitData = new Instances[m_NumberOfSplits];
         for (int i = 0; i < splitData.length; i++) {
@@ -971,7 +990,6 @@ public class Grupp3Labb1
      *
      * @param level the level at which the tree is to be printed
      * @return the tree as string at the given level
-     * TODO: Check binary
      */
     private String toString(int level) {
         StringBuilder text = new StringBuilder();
@@ -983,17 +1001,16 @@ public class Grupp3Labb1
                 text.append(": ").append(m_ClassAttribute.value((int) m_ClassValue)).append(leafInfo());
             }
         } else {
-            // TODO: m_Attribute.numValues is bad for binary
-            for (int j = 0; j < m_Attribute.numValues(); j++) {
+            for (int i = 0; i < m_Successors.length; i++) {
                 text.append("\n");
-                for (int i = 0; i < level; i++) {
+                for (int j = 0; i < level; i++) {
                     text.append("|  ");
                 }
 
-                text.append(m_Attribute.name()).append(" = ").append(m_Attribute.value(j));
+                text.append(m_Attribute.name()).append(" = ").append(m_Attribute.value(i));
 
-                if(m_Successors[j] != null)
-                    text.append(m_Successors[j].toString(level + 1));
+                if(m_Successors[i] != null)
+                    text.append(m_Successors[i].toString(level + 1));
             }
         }
         return text.toString();
@@ -1023,6 +1040,7 @@ public class Grupp3Labb1
             info = " (" + sum + ")";
         else
             info = " (" + sum + "/" + error + ")";
+        //text.append("("+m_numInstances+"/"+(int)((double) m_numInstances*unclassified)+")");
 
         return info;
     }
