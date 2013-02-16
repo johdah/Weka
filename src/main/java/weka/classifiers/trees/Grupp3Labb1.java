@@ -224,6 +224,7 @@ public class Grupp3Labb1
         if(m_UseBinarySplits){
             m_NumberOfSplits = 2;
             splitValues = new double[m_NumberOfSplits];
+            m_MinimumLeafSize = 2;
         }else{
             splitValues = new double[data.numAttributes()-1];
         }
@@ -260,9 +261,7 @@ public class Grupp3Labb1
         //m_MostCommonValue = data.meanOrMode(m_Attribute
 
         Instances[] splitData = getSplitData(data, m_Attribute);
-        //if (Utils.eq(bestAttr[m_Attribute.index()], 0) || data.numInstances() <= m_MinimumLeafSize) {
-        if((Utils.eq(bestAttr[m_Attribute.index()], 0) && !minLeafSize(splitData))
-                || (m_SplitMethod == 1 && !minLeafSize(splitData))) {
+        if (Utils.eq(bestAttr[m_Attribute.index()], 0) || data.numInstances() <= m_MinimumLeafSize) {
             makeLeaf(data);
         } else {
             m_Successors = new Grupp3Labb1[splitData.length];
@@ -284,25 +283,6 @@ public class Grupp3Labb1
                 }
             }
         }
-    }
-
-    /**
-     * @param data, a split of instances
-     * @return true if no instance has fewer than allowed in a leaf
-     * otherwise false. If a node has fewer instances than allowed
-     * it's discarded(null).
-     */
-    private boolean minLeafSize(Instances[] data) {
-        if(data == null)
-            return false;
-        boolean check = true;
-        for (Instances instances : data) {
-            if(instances == null || instances.numInstances() <= m_MinimumLeafSize){
-                instances = null;
-                check = false;
-            }
-        }
-        return check;
     }
 
     /**
@@ -391,6 +371,7 @@ public class Grupp3Labb1
             }
         }
 
+        //TODO: NPE
         return m_Successors[index].distributionForInstance(instance);
     }
 
@@ -1008,7 +989,7 @@ public class Grupp3Labb1
         } else {
             for (int i = 0; i < m_Successors.length; i++) {
                 text.append("\n");
-                for (int j = 0; i < level; i++) {
+                for (int j = 0; j < level; j++) {
                     text.append("|  ");
                 }
 
