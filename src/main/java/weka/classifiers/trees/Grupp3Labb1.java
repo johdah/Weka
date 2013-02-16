@@ -266,6 +266,12 @@ public class Grupp3Labb1
             makeLeaf(data);
         } else {
             m_Successors = new Grupp3Labb1[splitData.length];
+            //m_Successors = new Grupp3Labb1[m_Attribute.numValues()];
+            if(m_Attribute.isNumeric()){
+                m_Successors = new Grupp3Labb1[splitData.length];
+            }else{
+                m_Successors = new Grupp3Labb1[m_Attribute.numValues()];
+            }
 
             for (int i = 0; i < splitData.length; i++) {
                 if(splitData[i].numInstances() >= m_MinimumLeafSize) {
@@ -359,7 +365,6 @@ public class Grupp3Labb1
         } else {
             if(instance.isMissing(m_Attribute))
                 instance.setValue(m_Attribute, handleMissingValue());
-
             if(m_UseBinarySplits) {
                 if(m_Attribute.isNumeric()) {
                     for(int i = 0; i < splitValues.length; i++) {
@@ -734,7 +739,7 @@ public class Grupp3Labb1
         ArrayList<Double> values = new ArrayList<Double>();
         for(int i = 0; i < data.numInstances(); i++){
             for(int j = 0; j < data.instance(i).numValues(); j++){
-                values.add(data.instance(i).value(j));
+                values.add(data.instance(i).value(att));
             }
         }
 
