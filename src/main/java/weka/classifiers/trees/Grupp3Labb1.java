@@ -268,8 +268,9 @@ public class Grupp3Labb1
             makeLeaf(data);
         } else {
             Instances[] splitData = getSplitData(data, m_Attribute);
-            m_Successors = new Grupp3Labb1[m_Attribute.numValues()];
+            //m_Successors = new Grupp3Labb1[m_Attribute.numValues()];
             // TODO: Shall we make more instances?
+            m_Successors = new Grupp3Labb1[splitData.length];
 
             for (int j = 0; j < splitData.length; j++) {
                 m_Successors[j] = new Grupp3Labb1();
@@ -334,12 +335,12 @@ public class Grupp3Labb1
             throws NoSupportForMissingValuesException {
         int index = 0;
 
+
         if (m_Attribute == null) {
             return m_Distribution;
         } else {
             if(instance.isMissing(m_Attribute))
                 instance.setValue(m_Attribute, handleMissingValue());
-
             if(m_UseBinarySplits) {
                 if(m_Attribute.isNumeric()) {
                     int value = (int) instance.value(m_Attribute);
@@ -371,7 +372,17 @@ public class Grupp3Labb1
             }
         }
 
-        return m_Successors[index].distributionForInstance(instance);
+
+        printDebugMessage(String.valueOf(m_Successors.length));
+        try{
+            return m_Successors[index].distributionForInstance(instance);
+        }catch (IndexOutOfBoundsException e){
+            printDebugMessage(String.valueOf(index));
+            printDebugMessage(String.valueOf(instance));
+            printDebugMessage(String.valueOf(m_Successors));
+            return m_Successors[index].distributionForInstance(instance);
+        }
+
     }
 
     /**
@@ -718,7 +729,7 @@ public class Grupp3Labb1
         ArrayList<Double> values = new ArrayList<Double>();
         for(int i = 0; i < data.numInstances(); i++){
             for(int j = 0; j < data.instance(i).numValues(); j++){
-                values.add(data.instance(i).value(j));
+                values.add(data.instance(i).value(att));
             }
         }
 
