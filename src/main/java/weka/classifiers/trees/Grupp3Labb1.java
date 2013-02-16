@@ -221,7 +221,11 @@ public class Grupp3Labb1
      * @exception Exception if decision tree can't be built successfully
      */
     private void makeTree(Instances data) throws Exception {
-        splitValues = new double[data.numAttributes()-1];
+        if(m_UseBinarySplits){
+            splitValues = new double[1];
+        }else{
+            splitValues = new double[data.numAttributes()-1];
+        }
 
         // Check if no instances have reached this node.
         if (data.numInstances() == 0) {
@@ -267,7 +271,7 @@ public class Grupp3Labb1
             m_Successors = new Grupp3Labb1[m_Attribute.numValues()];
             // TODO: Shall we make more instances?
 
-            for (int j = 0; j < m_Attribute.numValues(); j++) {
+            for (int j = 0; j < splitData.length; j++) {
                 m_Successors[j] = new Grupp3Labb1();
                 m_Successors[j].makeTree(splitData[j]);
                 m_Successors[j].setMinimumLeafSize(m_MinimumLeafSize);
@@ -429,7 +433,7 @@ public class Grupp3Labb1
             }
 
             for (double aClassCount : classCount) {
-                double p = aClassCount / data.numInstances();
+                double p = aClassCount / (double) data.numInstances();
                 //for each class result - P(C1)^2.. loop and do P(C2)^2.. and so on
                 nodeResult = nodeResult - (p * p);
             }
@@ -452,9 +456,9 @@ public class Grupp3Labb1
 
         for (Instances aSplitData : splitData) {
             double sInfo = aSplitData.numInstances() / (float)data.numInstances();
-            if(sInfo <= 0)
+            if(sInfo <= 0.0)
                 continue;
-            splitInfo -= sInfo * Math.log(sInfo);
+            splitInfo -= sInfo * Utils.log2(sInfo);
         }
     	return splitInfo;
     }
@@ -473,7 +477,7 @@ public class Grupp3Labb1
         Instances[] splitData = getSplitData(data, att);
 
         if(splitData != null) {
-            for (int j = 0; j < att.numValues(); j++) {
+            for (int j = 0; j < splitData.length; j++) {
                 if (splitData[j].numInstances() > 0) {
                     infoGain -= ((double) splitData[j].numInstances()
                             / (double) data.numInstances())
@@ -501,7 +505,7 @@ public class Grupp3Labb1
         }
         double entropy = 0;
         for (int j = 0; j < data.numClasses(); j++) {
-            if (classCounts[j] > 0) {
+            if (classCounts[j] > 0.0) {
                 entropy -= classCounts[j] * Utils.log2(classCounts[j]);
             }
         }
@@ -597,10 +601,11 @@ public class Grupp3Labb1
                 splitData[1].add(inst);
             }
         }
-        splitData[0].compactify();
-        splitData[1].compactify();
+       
+        for (Instances aSplitData : splitData) {
+            aSplitData.compactify();
+        }
         splitValues[0] = splitValue;
-       // this.m_Attribute = att.; denna måste sättas.... kommer inte fugnera..
         return splitData;
     }
 
