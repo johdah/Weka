@@ -125,7 +125,7 @@ public class Grupp3Labb1
     private boolean m_UseBinarySplits;
 
     int m_NumberOfSplits = 3;
-    private double[] splitIndex;
+    private double[] splitValues;
 
     /**
      * Returns a string describing the classifier.
@@ -222,9 +222,9 @@ public class Grupp3Labb1
      */
     private void makeTree(Instances data) throws Exception {
         if(m_UseBinarySplits){
-            splitIndex = new double[1];
+            splitValues = new double[1];
         }else{
-            splitIndex = new double[data.numAttributes()-1];
+            splitValues = new double[data.numAttributes()-1];
         }
 
         // Check if no instances have reached this node.
@@ -343,25 +343,20 @@ public class Grupp3Labb1
                 instance.setValue(m_Attribute, handleMissingValue());
             if(m_UseBinarySplits) {
                 if(m_Attribute.isNumeric()) {
-                    int value = (int) instance.value(m_Attribute);
-                    for(int i = 0; i < splitIndex.length; i++) {
-                        if(instance.value(m_Attribute) <= splitIndex[i]) {
+                    for(int i = 0; i < splitValues.length; i++) {
+                        if(instance.value(m_Attribute) <= splitValues[i]) {
                             index = i;
                             break;
                         }
                     }
                 } else {
-                    double value = instance.value(m_Attribute);
-                    if(value == splitIndex[0])
+                    if(instance.value(m_Attribute) == splitValues[0])
                         index = 0;
-                    else
-                        index = 1;
                 }
             } else {
                 if(m_Attribute.isNumeric()) {
-                    double value = instance.value(m_Attribute);
-                    for(int i = 0; i < splitIndex.length; i++) {
-                        if(value <= splitIndex[i]) {
+                    for(int i = 0; i < splitValues.length; i++) {
+                        if(instance.value(m_Attribute) <= splitValues[i]) {
                             index = i;
                             break;
                         }
@@ -545,7 +540,6 @@ public class Grupp3Labb1
 
     /**
      * Splits a dataset binarily, according to the values of a nominal attribute.
-     * TODO: Work in progress - Johan
      *
      * @param data the data that is to be split
      * @param att the attribute to be used for splitting
@@ -588,7 +582,6 @@ public class Grupp3Labb1
             try {
 				gainValues[gainIndex] = computeInfoGain(data, att) / computeSplitInfo(data, att);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				return null;
 			}
@@ -617,10 +610,11 @@ public class Grupp3Labb1
                 splitData[1].add(inst);
             }
         }
+       
         for (Instances aSplitData : splitData) {
             aSplitData.compactify();
         }
-        splitIndex[0] = splitValue;
+        splitValues[0] = splitValue;
         return splitData;
     }
 
@@ -628,16 +622,18 @@ public class Grupp3Labb1
      * @param data the data that is to be split
      * @param att the attribute to be used for splitting
      * @return Best split produced
-     * TODO: Check book cap4 - splitting on binary attribute
      */
     private Instances[] binarySplitDataNumeric(Instances data, Attribute att) {
         double maxValue = Double.NEGATIVE_INFINITY, minValue = Double.POSITIVE_INFINITY;
         Instance inst;
+        m_NumberOfSplits = 2;
 
-        Instances[] splitData = new Instances[2];
-        splitData[0] = data.stringFreeStructure();
-        splitData[1] = data.stringFreeStructure();
+        Instances[] splitData = new Instances[m_NumberOfSplits];
+        for (int i = 0; i < splitData.length; i++) {
+            splitData[i] = data.stringFreeStructure();
+        }
 
+        // Fetch min/max values in instances
         Enumeration instEnum = data.enumerateInstances();
         while (instEnum.hasMoreElements()) {
             inst = (Instance) instEnum.nextElement();
@@ -650,11 +646,12 @@ public class Grupp3Labb1
         }
 
         double diff = maxValue - minValue;
-        double splitValue = diff/2;
+        double splitValue = diff / m_NumberOfSplits;
 
-        double value = minValue+splitValue;
+        // Set distribution splitValue
+        double value = minValue + splitValue;
         for (int i = 0; i < 2; i++) {
-            splitIndex[i] = value;
+            splitValues[i] = value;
             value += splitValue;
         }
 
