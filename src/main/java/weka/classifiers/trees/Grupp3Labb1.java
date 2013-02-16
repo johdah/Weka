@@ -270,7 +270,12 @@ public class Grupp3Labb1
             Instances[] splitData = getSplitData(data, m_Attribute);
             //m_Successors = new Grupp3Labb1[m_Attribute.numValues()];
             // TODO: Shall we make more instances?
-            m_Successors = new Grupp3Labb1[splitData.length];
+            if(m_Attribute.isNumeric()){
+                m_Successors = new Grupp3Labb1[splitData.length];
+            }else{
+                m_Successors = new Grupp3Labb1[m_Attribute.numValues()];
+            }
+
 
             for (int j = 0; j < splitData.length; j++) {
                 m_Successors[j] = new Grupp3Labb1();
