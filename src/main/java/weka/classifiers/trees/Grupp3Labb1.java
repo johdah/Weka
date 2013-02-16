@@ -529,7 +529,6 @@ public class Grupp3Labb1
 
     /**
      * Splits a dataset binarily, according to the values of a nominal attribute.
-     * TODO: Work in progress - Johan
      *
      * @param data the data that is to be split
      * @param att the attribute to be used for splitting
@@ -572,7 +571,6 @@ public class Grupp3Labb1
             try {
 				gainValues[gainIndex] = computeInfoGain(data, att) / computeSplitInfo(data, att);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				return null;
 			}
@@ -613,7 +611,6 @@ public class Grupp3Labb1
      * @param data the data that is to be split
      * @param att the attribute to be used for splitting
      * @return Best split produced
-     * TODO: Check book cap4 - splitting on binary attribute
      */
     private Instances[] binarySplitDataNumeric(Instances data, Attribute att) {
         double maxValue = Double.NEGATIVE_INFINITY, minValue = Double.POSITIVE_INFINITY;
