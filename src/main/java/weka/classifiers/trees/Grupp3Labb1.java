@@ -125,7 +125,7 @@ public class Grupp3Labb1
     /** Binary splits on nominal attributes? */
     private boolean m_UseBinarySplits;
 
-    int m_NumberOfSplits = 3;
+    int m_NumberOfSplits = MIN_SPLIT;
     private double[] splitValues;
 
     /**
@@ -230,7 +230,7 @@ public class Grupp3Labb1
         }
 
         printDebugMessage("\n--------------NEW NODE--------------");
-        printDebugMessage(String.format("\nNumber of instances in: %d", data.numInstances()));
+        printDebugMessage("\nNumber of instances in: " + data.numInstances());
 
         // Compute attribute with maximum information gain.
         double[] bestAttr = new double[data.numAttributes()];
@@ -238,7 +238,7 @@ public class Grupp3Labb1
         while (attEnum.hasMoreElements()) {
             Attribute att = (Attribute) attEnum.nextElement();
             bestAttr[att.index()] = computeAttributeValue(data, att);
-            printDebugMessage(String.format("\n%d: %s", att.index(), bestAttr[att.index()]));
+            printDebugMessage("\n" + att.index() + ": " + bestAttr[att.index()]);
         }
 
         if (m_SplitMethod == 0) {
@@ -458,6 +458,8 @@ public class Grupp3Labb1
     	Instances[] splitData = getSplitData(data, att);
         double splitInfo = 0.0;
 
+        if(splitData == null) return splitInfo;
+
         for (Instances aSplitData : splitData) {
             double sInfo = aSplitData.numInstances() / (float)data.numInstances();
             if(sInfo <= 0.0)
@@ -543,6 +545,8 @@ public class Grupp3Labb1
             return null;
         }
 
+        m_NumberOfSplits = 1;
+
         if(att.isNominal())
             return binarySplitDataNominal(data, att);
         else if(att.isNumeric())
@@ -557,10 +561,9 @@ public class Grupp3Labb1
      * @return Best split produced
      */
     private Instances[] binarySplitDataNominal(Instances data, Attribute att) {
-        m_NumberOfSplits = 2;
         splitValues = new double[m_NumberOfSplits];
 
-        Instances[] splitData = new Instances[m_NumberOfSplits];
+        Instances[] splitData = new Instances[m_NumberOfSplits+1];
         for (int i = 0; i < splitData.length; i++)
             splitData[i] = data.stringFreeStructure();
 
@@ -599,10 +602,9 @@ public class Grupp3Labb1
     private Instances[] binarySplitDataNumeric(Instances data, Attribute att) {
         double maxValue = Double.NEGATIVE_INFINITY, minValue = Double.POSITIVE_INFINITY;
         Instance inst;
-        m_NumberOfSplits = 2;
         splitValues = new double[m_NumberOfSplits];
 
-        Instances[] splitData = new Instances[m_NumberOfSplits];
+        Instances[] splitData = new Instances[m_NumberOfSplits+1];
         for (int i = 0; i < splitData.length; i++) {
             splitData[i] = data.stringFreeStructure();
         }
@@ -620,14 +622,14 @@ public class Grupp3Labb1
         }
 
         double diff = maxValue - minValue;
-        double splitValue = diff / m_NumberOfSplits;
+        double splitValue = diff / m_NumberOfSplits+1;
 
         // Set distribution splitValue
         double value = minValue + splitValue;
-        for (int i = 0; i < m_NumberOfSplits; i++) {
-            splitValues[i] = value;
+        //for (int i = 0; i < m_NumberOfSplits; i++) {
+            splitValues[0] = value;
             value += splitValue;
-        }
+        //}
 
         instEnum = data.enumerateInstances();
         while (instEnum.hasMoreElements()) {
