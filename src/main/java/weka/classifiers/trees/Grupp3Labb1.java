@@ -260,7 +260,7 @@ public class Grupp3Labb1
         //m_MostCommonValue = data.meanOrMode(m_Attribute
 
         Instances[] splitData = getSplitData(data, m_Attribute);
-        if (Utils.eq(bestAttr[m_Attribute.index()], 0) || data.numInstances() < m_MinimumLeafSize) {
+        if (Utils.eq(bestAttr[m_Attribute.index()], 0)&& !checkMinLeafSize(splitData) || (m_SplitMethod == 1 && !checkMinLeafSize(splitData))) {
             makeLeaf(data);
         } else {
             m_Successors = new Grupp3Labb1[splitData.length];
@@ -304,7 +304,18 @@ public class Grupp3Labb1
         m_ClassValue = Utils.maxIndex(m_Distribution);
         m_ClassAttribute = data.classAttribute();
     }
-
+    private boolean checkMinLeafSize(Instances[] data ){
+        if(data == null)
+            return false;
+        boolean check = true;
+        for (Instances instances : data) {
+            if(instances == null || instances.numInstances() <= m_MinimumLeafSize){
+                instances = null;
+                check = false;
+            }
+        }
+        return check;
+    }
     /**
      * Classifies a given test instance using the decision tree.
      *
