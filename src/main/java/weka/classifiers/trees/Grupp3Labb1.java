@@ -93,6 +93,8 @@ import weka.core.TechnicalInformation.Type;
 public class Grupp3Labb1
         extends AbstractClassifier
         implements TechnicalInformationHandler, OptionHandler, AdditionalMeasureProducer {//, Sourcable {
+    public static final int MAX_SPLIT = 7;
+    public static final int MIN_SPLIT = 2;
 
     /** for serialization */
     @SuppressWarnings("UnusedDeclaration")
@@ -261,7 +263,7 @@ public class Grupp3Labb1
         //m_MostCommonValue = data.meanOrMode(m_Attribute
 
         Instances[] splitData = getSplitData(data, m_Attribute);
-        if (Utils.eq(bestAttr[m_Attribute.index()], 0) || data.numInstances() <= m_MinimumLeafSize) {
+        if (Utils.eq(bestAttr[m_Attribute.index()], 0) || data.numInstances() < m_MinimumLeafSize) {
             makeLeaf(data);
         } else {
             m_Successors = new Grupp3Labb1[splitData.length];
@@ -720,74 +722,71 @@ public class Grupp3Labb1
      * @return the sets of instances produced by the split
      */
     private Instances[] splitDataNumeric(Instances data, Attribute att) {
-        // TODO: int numberOfSplitsIntervall = 3; //Can be from 2-7 (Do not make this constant)
+        double maxValue = Double.NEGATIVE_INFINITY, minValue = Double.POSITIVE_INFINITY;
+        int i = 0, j = 0;
+        Instance inst;
 
-        ArrayList<Double> values = new ArrayList<Double>();
-        for(int i = 0; i < data.numInstances(); i++){
-            for(int j = 0; j < data.instance(i).numValues(); j++){
-                values.add(data.instance(i).value(att));
-            }
-        }
-
-        //Sort the list
-        double temp;
-        for(int i = 0; i < values.size(); i++){
-            for(int j = 0; j < values.size()-1; j++){
-                if(values.get(j) > values.get(j+1)){
-                    temp = values.get(j);
-                    values.set(j, values.get(j+1));
-                    values.set(j+1, temp);
-                }
-            }
-        }
-
-        //Get the highest value
-        double highestValue = values.get(values.size()-1);
-        //Get the lowest value
-
-        double lowestValue = values.get(0);
-
-        double result = (highestValue + lowestValue) / m_NumberOfSplits;
+        m_NumberOfSplits = 3;
+        // TODO: Heuristic for m_NumberOfSplits
 
         Instances[] splitData = new Instances[m_NumberOfSplits];
-        int i = 0;
-        while (i < m_NumberOfSplits) {
-            splitData[i] = new Instances(data,data.numInstances());
-            i++;
+        for (i = 0; i < splitData.length; i++) {
+            splitData[i] = data.stringFreeStructure();
         }
 
+        // Get min-max values from instances
         Enumeration instEnum = data.enumerateInstances();
-        while(instEnum.hasMoreElements()){
-            Instance inst = (Instance) instEnum.nextElement();
-            boolean flag = false;
+        while(instEnum.hasMoreElements()) {
+            inst = (Instance) instEnum.nextElement();
+            double value = inst.value(att);
 
-            if(inst.value(att) == Double.NaN){
-                if(splitData[0].numInstances() <= splitData[1].numInstances()){
-                    splitData[0].add(inst);
-                }else{
-                    splitData[m_NumberOfSplits - 1].add(inst);
-                }
-            }
-
-            i = 0;
-            while (i < m_NumberOfSplits -1) {
-                double tmpValue = result * (i+1);
-                if(inst.value(att) <= tmpValue){
-                    splitData[i].add(inst);
-                    flag = true;
-                    break;
-                }
-                i++;
-            }
-
-            if(!flag)
-                splitData[m_NumberOfSplits -1].add(inst);
+            if(maxValue < value)
+                maxValue = value;
+            if(minValue > value)
+                minValue = value;
         }
+
+        double diff = maxValue - minValue;
+        double splitValue = diff / m_NumberOfSplits;
+
+        // Set distribution
+        double value = minValue + splitValue;
+        for(i = 0; i < m_NumberOfSplits; i++) {
+            splitValues[i] = value;
+            value += splitValue;
+        }
+
+        // Adding instances to new split attribute
+        instEnum = data.enumerateInstances();
+        while (instEnum.hasMoreElements()) {
+            inst = (Instance) instEnum.nextElement();
+
+            int index = -1;
+            if(!inst.hasMissingValue()) {
+                // Inst. intervall is between min-max
+                double bound = minValue + splitValue;
+
+                for(i = 0; i < m_NumberOfSplits; i++) {
+                    if(bound < inst.value(att))
+                        bound += splitValue;
+                    else {
+                        index = i;
+                        i = m_NumberOfSplits;
+                    }
+
+                    if(i == m_NumberOfSplits-1)
+                        index = i;
+                }
+
+                splitData[index].add(inst);
+            }
+        }
+
         for (Instances aSplitData : splitData) {
             aSplitData.compactify();
         }
-        return splitData;
 
+        return splitData;
     }
 
     /**
