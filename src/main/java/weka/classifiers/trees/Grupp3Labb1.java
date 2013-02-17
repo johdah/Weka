@@ -249,9 +249,6 @@ public class Grupp3Labb1
             printDebugMessage("\nGiniIndex for Atributes:");
         }
         printDebugMessage("\nChoosing: " + m_Attribute.index() + " (" + m_Attribute.name() + ")\n");
-
-        //m_MostCommonValue = data.meanOrMode(m_Attribute
-
         Instances[] splitData = getSplitData(data, m_Attribute);
         if (Utils.eq(bestAttr[m_Attribute.index()], 0)&& !checkMinLeafSize(splitData)
                 || (m_SplitMethod == 1 && !checkMinLeafSize(splitData))) {
@@ -336,13 +333,30 @@ public class Grupp3Labb1
     public double[] distributionForInstance(Instance instance)
             throws NoSupportForMissingValuesException {
         int index = 0;
-
         if (m_Attribute == null) {
             return m_Distribution;
         } else {
             if(instance.isMissing(m_Attribute))
                 instance.setValue(m_Attribute, handleMissingValue());
-            if(m_UseBinarySplits) {
+            if(m_Attribute.isNumeric()) {
+                for(int i = 0; i < splitValues.length; i++){
+                    if(instance.value(m_Attribute) <= splitValues[i]){
+                        index = i;
+                        break;
+                    }
+                }
+            }
+            if(m_Attribute.isNominal()){
+                if(m_UseBinarySplits) {
+                    if(instance.value(m_Attribute) == splitValues[0]) index = 0;
+                    else index = 1;
+                } else {
+                    index = (int) instance.value(m_Attribute);
+                }
+            }
+            return m_Successors[index].distributionForInstance(instance);
+        }
+            /*if(m_UseBinarySplits) {
                 if (!m_Attribute.isNumeric())
                     if(instance.value(m_Attribute) == splitValues[0]) index = 0;
                 else {
@@ -366,9 +380,9 @@ public class Grupp3Labb1
                         break;
                     }
                 }
-            }
-        }
-
+            } */
+    }
+         /*
         //TODO: NPE
         try {
             return m_Successors[index].distributionForInstance(instance);
@@ -376,7 +390,7 @@ public class Grupp3Labb1
             e.printStackTrace();
             return m_Successors[index].distributionForInstance(instance);
         }
-    }
+    } */
 
     /**
      * Handle missing value
@@ -602,9 +616,10 @@ public class Grupp3Labb1
     private Instances[] binarySplitDataNumeric(Instances data, Attribute att) {
         double maxValue = Double.NEGATIVE_INFINITY, minValue = Double.POSITIVE_INFINITY;
         Instance inst;
-        splitValues = new double[m_NumberOfSplits];
+        m_NumberOfSplits = 2;
+        splitValues = new double[m_NumberOfSplits ];
 
-        Instances[] splitData = new Instances[m_NumberOfSplits+1];
+        Instances[] splitData = new Instances[m_NumberOfSplits];
         for (int i = 0; i < splitData.length; i++) {
             splitData[i] = data.stringFreeStructure();
         }
@@ -622,14 +637,14 @@ public class Grupp3Labb1
         }
 
         double diff = maxValue - minValue;
-        double splitValue = diff / m_NumberOfSplits+1;
+        double splitValue = diff / m_NumberOfSplits;
 
         // Set distribution splitValue
         double value = minValue + splitValue;
-        //for (int i = 0; i < m_NumberOfSplits; i++) {
-            splitValues[0] = value;
+        for (int i = 0; i < m_NumberOfSplits; i++) {
+            splitValues[i] = value;
             value += splitValue;
-        //}
+        }
 
         instEnum = data.enumerateInstances();
         while (instEnum.hasMoreElements()) {
