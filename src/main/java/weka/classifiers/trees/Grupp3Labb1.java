@@ -21,7 +21,6 @@
  */
 package weka.classifiers.trees;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Vector;
@@ -94,7 +93,7 @@ public class Grupp3Labb1
         extends AbstractClassifier
         implements TechnicalInformationHandler, OptionHandler, AdditionalMeasureProducer {//, Sourcable {
     public static final int MAX_SPLIT = 7;
-    public static final int MIN_SPLIT = 2;
+    public static final int MIN_SPLIT = 3;
 
     /** for serialization */
     @SuppressWarnings("UnusedDeclaration")
@@ -224,7 +223,6 @@ public class Grupp3Labb1
      */
     private void makeTree(Instances data) throws Exception {
         if(m_UseBinarySplits){
-            m_NumberOfSplits = 2;
             splitValues = new double[m_NumberOfSplits];
             m_MinimumLeafSize = 2;
         }else{
@@ -568,6 +566,8 @@ public class Grupp3Labb1
      * @return Best split produced
      */
     private Instances[] binarySplitDataNominal(Instances data, Attribute att) {
+        m_NumberOfSplits = 2;
+
     	Instances[] splitData = new Instances[2];
         splitData[0] = data.stringFreeStructure();
         splitData[1] = data.stringFreeStructure();
@@ -628,6 +628,7 @@ public class Grupp3Labb1
     private Instances[] binarySplitDataNumeric(Instances data, Attribute att) {
         double maxValue = Double.NEGATIVE_INFINITY, minValue = Double.POSITIVE_INFINITY;
         Instance inst;
+        m_NumberOfSplits = 2;
 
         Instances[] splitData = new Instances[m_NumberOfSplits];
         for (int i = 0; i < splitData.length; i++) {
@@ -725,10 +726,10 @@ public class Grupp3Labb1
         double maxValue = Double.NEGATIVE_INFINITY, minValue = Double.POSITIVE_INFINITY;
         Instance inst;
 
-        m_NumberOfSplits = 3;
+        m_NumberOfSplits = MIN_SPLIT;
         // Heuristic for m_NumberOfSplits
         int tmp = 1;
-        while(m_NumberOfSplits <= MAX_SPLIT) {
+        while(m_NumberOfSplits < MAX_SPLIT) {
             // Get 7^x value
             tmp = MAX_SPLIT;
 
@@ -737,6 +738,7 @@ public class Grupp3Labb1
             else
                 break;
         }
+        printDebugMessage(String.format("m_NumberOfSplits: %d", m_NumberOfSplits));
 
         Instances[] splitData = new Instances[m_NumberOfSplits];
         for (int i = 0; i < splitData.length; i++) {
