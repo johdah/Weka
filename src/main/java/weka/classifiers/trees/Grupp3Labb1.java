@@ -247,7 +247,7 @@ public class Grupp3Labb1
             Attribute att = (Attribute) attEnum.nextElement();
             bestAttr[att.index()] = computeAttributeValue(data, att);
             printDebugMessage("\n" + att.index() + ": " + bestAttr[att.index()]);
-        };
+        }
 
         if (m_SplitMethod == 0) {
             m_Attribute = data.attribute(Utils.maxIndex(bestAttr));
@@ -488,11 +488,11 @@ public class Grupp3Labb1
         Instances[] splitData = getSplitData(data, att);
 
         if(splitData != null) {
-            for (int j = 0; j < splitData.length; j++) {
-                if (splitData[j].numInstances() > 0) {
-                    infoGain -= ((double) splitData[j].numInstances()
+            for (Instances aSplitData : splitData) {
+                if (aSplitData.numInstances() > 0) {
+                    infoGain -= ((double) aSplitData.numInstances()
                             / (double) data.numInstances())
-                            * computeEntropy(splitData[j]);
+                            * computeEntropy(aSplitData);
                 }
             }
         }
@@ -568,44 +568,25 @@ public class Grupp3Labb1
     private Instances[] binarySplitDataNominal(Instances data, Attribute att) {
         m_NumberOfSplits = 2;
 
-    	Instances[] splitData = new Instances[2];
-        splitData[0] = data.stringFreeStructure();
-        splitData[1] = data.stringFreeStructure();
-        //binary split data structure.
-        
-        //for each way of splitting calculate gainratio value, pick splitt with best gainratio.
-        //Check the gainratio value for all attValues.
-        /*double[] gainValues = new double[att.numValues()];
-        int gainIndex = 0;
-        Enumeration instEnum = att.enumerateValues(); 
-        while (instEnum.hasMoreElements()) {
-            Attribute attr = (Attribute) instEnum.nextElement();
-            this.m_Attribute = attr;
-            try {
-				gainValues[gainIndex] = computeInfoGain(data, att) / computeSplitInfo(data, att);
-			} catch (Exception e) {
-				e.printStackTrace();
-				return null;
-			}
-            gainIndex++;
+        Instances[] splitData = new Instances[m_NumberOfSplits];
+        for (int i = 0; i < splitData.length; i++) {
+            splitData[i] = data.stringFreeStructure();
         }
-        double splitValue = Utils.maxIndex(gainValues);    
-        */
-        //splitt on the value with most occurance, this will make the split taht removes the most instances.
-        int[] attCounts = new int[att.numValues()];
-        Enumeration instEnum = data.enumerateInstances(); 
-        while (instEnum.hasMoreElements()) {
+
+        // Find out how many occurences there are of each attribute
+        int[] occurrences = new int[att.numValues()];
+        Enumeration instEnum = data.enumerateInstances();
+        while(instEnum.hasMoreElements()) {
             Instance inst = (Instance) instEnum.nextElement();
-            attCounts[(int) inst.value(att)]++;
+            occurrences[(int) inst.value(att)]++;
         }
-        //Pick the value with the most occurances to be the value to split upon
-        double splitValue = Utils.maxIndex(attCounts);  
-        
-        
-        
+
+        // Pick the value with most occurences as splitValue
+        double splitValue = Utils.maxIndex(occurrences);
         
         //split the instances in data depending on splitValue.
         for(Instance inst : data){
+            // If instance has the same value as splitValue, put in the first bucket
             if(inst.value(att) == splitValue){ 
                 splitData[0].add(inst);
             }else{
@@ -616,6 +597,7 @@ public class Grupp3Labb1
         for (Instances aSplitData : splitData) {
             aSplitData.compactify();
         }
+
         splitValues[0] = splitValue;
         return splitData;
     }
@@ -675,6 +657,7 @@ public class Grupp3Labb1
         for (Instances aSplitData : splitData) {
             aSplitData.compactify();
         }
+
         return splitData;
     }
 
@@ -728,7 +711,7 @@ public class Grupp3Labb1
 
         m_NumberOfSplits = MIN_SPLIT;
         // Heuristic for m_NumberOfSplits
-        int tmp = 1;
+        int tmp;
         while(m_NumberOfSplits < MAX_SPLIT) {
             // Get 7^x value
             tmp = MAX_SPLIT;
