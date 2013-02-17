@@ -134,10 +134,9 @@ public class Grupp3Labb1
      */
     public String globalInfo() {
         return "Class for constructing an unpruned decision tree based on the ID3 "
-                + "algorithm. Can only deal with nominal attributes. No missing values "
-                + "allowed. Empty leaves may result in unclassified instances. For more "
-                + "information see: \n\n"
-                + getTechnicalInformation().toString();
+               + "algorithm. Can only deal with nominal attributes. No missing values "
+               + "allowed. Empty leaves may result in unclassified instances. For more "
+                + "information see: \n\n" + getTechnicalInformation().toString();
     }
 
     /**
@@ -209,9 +208,9 @@ public class Grupp3Labb1
 
     private int getMajorityClass(Instances data) {
         int[] classCounts = new int[data.numClasses()];
-        for (int i = 0; i < data.numInstances(); i++) {
+        for (int i = 0; i < data.numInstances(); i++)
             classCounts[(int) data.instance(i).classValue()]++;
-        }
+
         return Utils.maxIndex(classCounts);
     }
 
@@ -222,11 +221,11 @@ public class Grupp3Labb1
      * @exception Exception if decision tree can't be built successfully
      */
     private void makeTree(Instances data) throws Exception {
-        if(m_UseBinarySplits){
+        if (!m_UseBinarySplits)
+            splitValues = new double[data.numAttributes()-1];
+        else {
             splitValues = new double[m_NumberOfSplits];
             m_MinimumLeafSize = 2;
-        }else{
-            splitValues = new double[data.numAttributes()-1];
         }
 
         // Check if no instances have reached this node.
@@ -238,7 +237,7 @@ public class Grupp3Labb1
         }
 
         printDebugMessage("\n--------------NEW NODE--------------");
-        //printDebugMessage("\nNumber of instances in: " + data.numInstances());
+        printDebugMessage(String.format("\nNumber of instances in: %d", data.numInstances()));
 
         // Compute attribute with maximum information gain.
         double[] bestAttr = new double[data.numAttributes()];
@@ -265,22 +264,21 @@ public class Grupp3Labb1
             makeLeaf(data);
         } else {
             m_Successors = new Grupp3Labb1[splitData.length];
-            //m_Successors = new Grupp3Labb1[m_Attribute.numValues()];
-            if(m_Attribute.isNumeric()){
+            if(m_Attribute.isNumeric())
                 m_Successors = new Grupp3Labb1[splitData.length];
-            }else{
+            else
                 m_Successors = new Grupp3Labb1[m_Attribute.numValues()];
-            }
 
             for (int i = 0; i < splitData.length; i++) {
-                if(splitData[i].numInstances() >= m_MinimumLeafSize) {
-                    m_Successors[i] = new Grupp3Labb1();
-                    m_Successors[i].m_Debug = m_Debug;
-                    m_Successors[i].m_MinimumLeafSize = m_MinimumLeafSize;
-                    m_Successors[i].m_SplitMethod = m_SplitMethod;
-                    m_Successors[i].m_UseBinarySplits = m_UseBinarySplits;
-                    m_Successors[i].makeTree(splitData[i]);
-                }
+                if (splitData[i].numInstances() < m_MinimumLeafSize)
+                    continue;
+
+                m_Successors[i] = new Grupp3Labb1();
+                m_Successors[i].m_Debug = m_Debug;
+                m_Successors[i].m_MinimumLeafSize = m_MinimumLeafSize;
+                m_Successors[i].m_SplitMethod = m_SplitMethod;
+                m_Successors[i].m_UseBinarySplits = m_UseBinarySplits;
+                m_Successors[i].makeTree(splitData[i]);
             }
         }
     }
@@ -316,17 +314,14 @@ public class Grupp3Labb1
      */
     public double classifyInstance(Instance instance)
             throws NoSupportForMissingValuesException {
-
-        if (instance.hasMissingValue()) {
+        if (instance.hasMissingValue())
             return handleMissingValue();
-        }
 
-        if (m_Attribute == null) {
+        if (m_Attribute == null)
             return m_ClassValue;
-        } else {
-            // TODO: Bad for binary
-            return m_Successors[(int) instance.value(m_Attribute)].classifyInstance(instance);
-        }
+
+        // TODO: Bad for binary
+        return m_Successors[(int) instance.value(m_Attribute)].classifyInstance(instance);
     }
 
     /**
@@ -346,27 +341,28 @@ public class Grupp3Labb1
             if(instance.isMissing(m_Attribute))
                 instance.setValue(m_Attribute, handleMissingValue());
             if(m_UseBinarySplits) {
-                if(m_Attribute.isNumeric()) {
+                if (!m_Attribute.isNumeric())
+                    if(instance.value(m_Attribute) == splitValues[0]) index = 0;
+                else {
                     for(int i = 0; i < splitValues.length; i++) {
-                        if(instance.value(m_Attribute) <= splitValues[i]) {
-                            index = i;
-                            break;
-                        }
+                        if (instance.value(m_Attribute) > splitValues[i])
+                            continue;
+
+                        index = i;
+                        break;
                     }
-                } else {
-                    if(instance.value(m_Attribute) == splitValues[0])
-                        index = 0;
                 }
             } else {
-                if(m_Attribute.isNumeric()) {
-                    for(int i = 0; i < splitValues.length; i++) {
-                        if(instance.value(m_Attribute) <= splitValues[i]) {
-                            index = i;
-                            break;
-                        }
-                    }
-                } else {
+                if (!m_Attribute.isNumeric())
                     index = (int) instance.value(m_Attribute);
+                else {
+                    for(int i = 0; i < splitValues.length; i++) {
+                        if (instance.value(m_Attribute) > splitValues[i])
+                            continue;
+
+                        index = i;
+                        break;
+                    }
                 }
             }
         }
@@ -418,48 +414,43 @@ public class Grupp3Labb1
     }
 
     /**
-     * TODO: Comment
-     *
      * @param data the data for which gini index is to be computed
      * @param att the attribute
-     * @return TODO: double gini index value
+     * @return giniIndex
      */
     private double computeGiniIndex(Instances data, Attribute att){
     	Instances[] splitData = getSplitData(data, att);
     	double gini = 0;
 
-        // TODO: Why iterate splitData if not using result?
         for (Instances aSplitData : splitData) {
-            //for each node..
             double nodeResult = 1.0;
+
             double[] classCount = new double[data.numClasses()];
             for (int init = 0; init < data.numClasses(); init++) {
                 classCount[init] = 0;
             }
 
-            //count instances in classes.
-            for (int i = 0; i < data.numInstances(); i++) {
-                //cumpute how frequent a class is.
-                classCount[(int) data.instance(i).classValue()]++;
+            // Count class frequency.
+            for (int j = 0; j < data.numInstances(); j++) {
+                classCount[(int) data.instance(j).classValue()]++;
             }
 
+            //for each class result - P(C1)^2.. loop and do P(C2)^2.. and so on
             for (double aClassCount : classCount) {
                 double p = aClassCount / (double) data.numInstances();
-                //for each class result - P(C1)^2.. loop and do P(C2)^2.. and so on
                 nodeResult = nodeResult - (p * p);
             }
 
             gini += ((double) splitData.length / (double) data.size()) * nodeResult;
         }
+
     	return gini;
     }
 
     /**
-     * TODO: Comment
-     *
      * @param data the data for which info gain is to be computed
      * @param att the attribute
-     * @return TODO: splitInfo value
+     * @return splitInfo
      */
     private double computeSplitInfo(Instances data, Attribute att){
     	Instances[] splitData = getSplitData(data, att);
@@ -469,8 +460,10 @@ public class Grupp3Labb1
             double sInfo = aSplitData.numInstances() / (float)data.numInstances();
             if(sInfo <= 0.0)
                 continue;
+
             splitInfo -= sInfo * Utils.log2(sInfo);
         }
+
     	return splitInfo;
     }
 
@@ -487,14 +480,12 @@ public class Grupp3Labb1
         double infoGain = computeEntropy(data);
         Instances[] splitData = getSplitData(data, att);
 
-        if(splitData != null) {
-            for (Instances aSplitData : splitData) {
-                if (aSplitData.numInstances() > 0) {
-                    infoGain -= ((double) aSplitData.numInstances()
-                            / (double) data.numInstances())
-                            * computeEntropy(aSplitData);
-                }
-            }
+        if(splitData == null) return infoGain;
+
+        for (Instances aSplitData : splitData) {
+            if (aSplitData.numInstances() <= 0) continue;
+            infoGain -= ((double) aSplitData.numInstances() / (double) data.numInstances())
+                    * computeEntropy(aSplitData);
         }
 
         return infoGain;
@@ -514,16 +505,16 @@ public class Grupp3Labb1
             Instance inst = (Instance) instEnum.nextElement();
             classCounts[(int) inst.classValue()]++;
         }
+
         double entropy = 0;
         for (int j = 0; j < data.numClasses(); j++) {
-            if (classCounts[j] > 0.0) {
+            if (classCounts[j] > 0.0)
                 entropy -= classCounts[j] * Utils.log2(classCounts[j]);
-            }
         }
+
         entropy /= (double) data.numInstances();
-        if(data.numInstances() <= 0)
-            return 0;
-        return entropy + Utils.log2(data.numInstances());
+        if(data.numInstances() <= 0) return 0;
+        else return entropy + Utils.log2(data.numInstances());
     }
 
     /**
@@ -546,7 +537,6 @@ public class Grupp3Labb1
      * @return Best split produced
      */
     private Instances[] binarySplitData(Instances data, Attribute att) {
-        // Don't try to split less than 2 instances
         if(data.numInstances() < 2) {
             printDebugMessage("You can't try to split less than 2 instances (facepalm)");
             return null;
@@ -569,9 +559,8 @@ public class Grupp3Labb1
         m_NumberOfSplits = 2;
 
         Instances[] splitData = new Instances[m_NumberOfSplits];
-        for (int i = 0; i < splitData.length; i++) {
+        for (int i = 0; i < splitData.length; i++)
             splitData[i] = data.stringFreeStructure();
-        }
 
         // Find out how many occurences there are of each attribute
         int[] occurrences = new int[att.numValues()];
@@ -587,16 +576,14 @@ public class Grupp3Labb1
         //split the instances in data depending on splitValue.
         for(Instance inst : data){
             // If instance has the same value as splitValue, put in the first bucket
-            if(inst.value(att) == splitValue){ 
+            if(inst.value(att) == splitValue)
                 splitData[0].add(inst);
-            }else{
+            else
                 splitData[1].add(inst);
-            }
         }
        
-        for (Instances aSplitData : splitData) {
+        for (Instances aSplitData : splitData)
             aSplitData.compactify();
-        }
 
         splitValues[0] = splitValue;
         return splitData;
@@ -868,7 +855,7 @@ public class Grupp3Labb1
             array[i] = result.elementAt(i);
         }
 
-        return array; // (String[]) result.toArray(new String[result.size()]);
+        return array;
     }
 
     /**
@@ -949,9 +936,8 @@ public class Grupp3Labb1
      * @param value Value to assign to this property.
      */
     public void setSplitMethod(SelectedTag value) {
-        if (value.getTags() == TAGS_SplitMethod) {
+        if (value.getTags() == TAGS_SplitMethod)
             m_SplitMethod = value.getSelectedTag().getID();
-        }
     }
 
     /**
@@ -960,13 +946,11 @@ public class Grupp3Labb1
      * @return a textual description of the classifier
      */
     public String toString() {
-        if ((m_Distribution == null) && (m_Successors == null)) {
+        if ((m_Distribution == null) && (m_Successors == null))
             return "Grupp3Labb1: No model built yet.";
-        }
 
-        return "Grupp3Labb1\n------------------\n" + toString(0)
-                + "\n\nSize of the tree: " + (int)measureTreeSize() + "\n\n"
-                + "Number of leaves: " + (int)measureNumLeaves();
+        return String.format("Grupp3Labb1\n------------------\n%s\n\nSize of the tree: %d\n\nNumber of leaves: %d",
+                new Object[]{toString(0), measureTreeSize(), measureNumLeaves()});
     }
 
     /**
@@ -979,17 +963,15 @@ public class Grupp3Labb1
         StringBuilder text = new StringBuilder();
 
         if (m_Attribute == null) { // isLeaf
-            if (Utils.isMissingValue(m_ClassValue)) {
+            if (Utils.isMissingValue(m_ClassValue))
                 text.append(": null");
-            } else {
+            else
                 text.append(": ").append(m_ClassAttribute.value((int) m_ClassValue)).append(leafInfo());
-            }
         } else {
             for (int i = 0; i < m_Successors.length; i++) {
                 text.append("\n");
-                for (int j = 0; j < level; j++) {
+                for (int j = 0; j < level; j++)
                     text.append("|  ");
-                }
 
                 text.append(m_Attribute.name()).append(" = ").append(m_Attribute.value(i));
 
@@ -1038,27 +1020,22 @@ public class Grupp3Labb1
      * @throws Exception  if something goes wrong
      */
     protected int toSource(int id, StringBuffer buffer) throws Exception {
-        int result;
-        int i;
-        int newID;
+        int result, i, newID;
         StringBuffer[] subBuffers;
 
-        buffer.append("\n");
-        buffer.append("  protected static double node").append(id).append("(Object[] i) {\n");
+        buffer.append("\n").append("  protected static double node").append(id).append("(Object[] i) {\n");
 
-        // leaf?
-        if (m_Attribute == null) {
+        if (m_Attribute == null) { // isLeaf?
             result = id;
-            if (Double.isNaN(m_ClassValue)) {
+            if (Double.isNaN(m_ClassValue))
                 buffer.append("    return Double.NaN;");
-            } else {
+            else
                 buffer.append("    return ").append(m_ClassValue).append(";");
-            }
-            if (m_ClassAttribute != null) {
+
+            if (m_ClassAttribute != null)
                 buffer.append(" // ").append(m_ClassAttribute.value((int) m_ClassValue));
-            }
-            buffer.append("\n");
-            buffer.append("  }\n");
+
+            buffer.append("\n").append("  }\n");
         } else {
             buffer.append("    // ").append(m_Attribute.name()).append("\n");
 
@@ -1069,9 +1046,9 @@ public class Grupp3Labb1
                 newID++;
 
                 buffer.append("    ");
-                if (i > 0) {
+                if (i > 0)
                     buffer.append("else ");
-                }
+
                 buffer.append("if (((String) i[").append(m_Attribute.index()).append("]).equals(\"").append(m_Attribute.value(i)).append("\"))\n");
                 buffer.append("      return node").append(newID).append("(i);\n");
 
@@ -1083,10 +1060,8 @@ public class Grupp3Labb1
             buffer.append("  }\n");
 
             // output subtree code
-            for (i = 0; i < m_Attribute.numValues(); i++) {
+            for (i = 0; i < m_Attribute.numValues(); i++)
                 buffer.append(subBuffers[i].toString());
-            }
-            //subBuffers = null;
 
             result = newID;
         }
@@ -1133,9 +1108,8 @@ public class Grupp3Labb1
      * @param msg the message to be printed
      */
     private void printDebugMessage(String msg) {
-        if (m_Debug) {
+        if (m_Debug)
             System.out.println("\n" + msg);
-        }
     }
 
     /**
@@ -1175,16 +1149,14 @@ public class Grupp3Labb1
      * @throws IllegalArgumentException if the named measure is not supported
      */
     public double getMeasure(String additionalMeasureName) {
-        if (additionalMeasureName.compareToIgnoreCase("measureNumRules") == 0) {
+        if (additionalMeasureName.compareToIgnoreCase("measureNumRules") == 0)
             return measureNumRules();
-        } else if (additionalMeasureName.compareToIgnoreCase("measureTreeSize") == 0) {
+        else if (additionalMeasureName.compareToIgnoreCase("measureTreeSize") == 0)
             return measureTreeSize();
-        } else if (additionalMeasureName.compareToIgnoreCase("measureNumLeaves") == 0) {
+        else if (additionalMeasureName.compareToIgnoreCase("measureNumLeaves") == 0)
             return measureNumLeaves();
-        } else {
-            throw new IllegalArgumentException(additionalMeasureName
-                    + " not supported (ID3)");
-        }
+        else
+            throw new IllegalArgumentException(additionalMeasureName + " not supported (ID3)");
     }
 
     /**
@@ -1195,13 +1167,12 @@ public class Grupp3Labb1
 
         if(isLeaf())
             return 1;
-        else {
-            for(Grupp3Labb1 suc : m_Successors) {
-                if(suc == null)
-                    num++;
-                else
-                    num += suc.measureNumLeaves();
-            }
+
+        for(Grupp3Labb1 suc : m_Successors) {
+            if(suc == null)
+                num++;
+            else
+                num += suc.measureNumLeaves();
         }
 
         return num;
@@ -1215,13 +1186,12 @@ public class Grupp3Labb1
 
         if(isLeaf())
             return 0;
-        else {
-            for(Grupp3Labb1 suc : m_Successors) {
-                if(suc == null)
-                    num++;
-                else
-                    num += suc.measureNumRules();
-            }
+
+        for(Grupp3Labb1 suc : m_Successors) {
+            if(suc == null)
+                num++;
+            else
+                num += suc.measureNumRules();
         }
 
         return num;
@@ -1235,13 +1205,12 @@ public class Grupp3Labb1
 
         if(isLeaf())
             return 1;
-        else {
-            for(Grupp3Labb1 suc : m_Successors) {
-                if(suc == null)
-                    num++;
-                else
-                    num += suc.measureTreeSize();
-            }
+
+        for(Grupp3Labb1 suc : m_Successors) {
+            if(suc == null)
+                num++;
+            else
+                num += suc.measureTreeSize();
         }
 
         return num;
