@@ -238,7 +238,7 @@ public class Grupp3Labb1
         while (attEnum.hasMoreElements()) {
             Attribute att = (Attribute) attEnum.nextElement();
             bestAttr[att.index()] = computeAttributeValue(data, att);
-            printDebugMessage("\n" + att.index() + ": " + bestAttr[att.index()]);
+            printDebugMessage(String.format("\n%d: %s", att.index(), bestAttr[att.index()]));
         }
 
         if (m_SplitMethod == 0) {
@@ -253,18 +253,22 @@ public class Grupp3Labb1
         //m_MostCommonValue = data.meanOrMode(m_Attribute
 
         Instances[] splitData = getSplitData(data, m_Attribute);
-        if (Utils.eq(bestAttr[m_Attribute.index()], 0)&& !checkMinLeafSize(splitData) || (m_SplitMethod == 1 && !checkMinLeafSize(splitData))) {
+        if (Utils.eq(bestAttr[m_Attribute.index()], 0)&& !checkMinLeafSize(splitData)
+                || (m_SplitMethod == 1 && !checkMinLeafSize(splitData))) {
             makeLeaf(data);
         } else {
             m_Successors = new Grupp3Labb1[splitData.length];
+
             for (int i = 0; i < splitData.length; i++) {
-                if (splitData[i].numInstances() >= m_MinimumLeafSize)
-                    m_Successors[i] = new Grupp3Labb1();
-                    m_Successors[i].m_Debug = m_Debug;
-                    m_Successors[i].m_MinimumLeafSize = m_MinimumLeafSize;
-                    m_Successors[i].m_SplitMethod = m_SplitMethod;
-                    m_Successors[i].m_UseBinarySplits = m_UseBinarySplits;
-                    m_Successors[i].makeTree(splitData[i]);
+                if (splitData[i].numInstances() < m_MinimumLeafSize)
+                    continue;
+
+                m_Successors[i] = new Grupp3Labb1();
+                m_Successors[i].m_Debug = m_Debug;
+                m_Successors[i].m_MinimumLeafSize = m_MinimumLeafSize;
+                m_Successors[i].m_SplitMethod = m_SplitMethod;
+                m_Successors[i].m_UseBinarySplits = m_UseBinarySplits;
+                m_Successors[i].makeTree(splitData[i]);
             }
         }
     }
@@ -290,18 +294,19 @@ public class Grupp3Labb1
         m_ClassValue = Utils.maxIndex(m_Distribution);
         m_ClassAttribute = data.classAttribute();
     }
+
     private boolean checkMinLeafSize(Instances[] data ){
         if(data == null)
             return false;
         boolean check = true;
         for (Instances instances : data) {
             if(instances == null || instances.numInstances() <= m_MinimumLeafSize){
-                instances = null;
                 check = false;
             }
         }
         return check;
     }
+
     /**
      * Classifies a given test instance using the decision tree.
      *
@@ -452,14 +457,13 @@ public class Grupp3Labb1
     private double computeSplitInfo(Instances data, Attribute att){
     	Instances[] splitData = getSplitData(data, att);
         double splitInfo = 0.0;
-        if(splitData != null){
-            for (Instances aSplitData : splitData) {
-                double sInfo = aSplitData.numInstances() / (float)data.numInstances();
-                if(sInfo <= 0.0)
-                    continue;
 
-                splitInfo -= sInfo * Utils.log2(sInfo);
-            }
+        for (Instances aSplitData : splitData) {
+            double sInfo = aSplitData.numInstances() / (float)data.numInstances();
+            if(sInfo <= 0.0)
+                continue;
+
+            splitInfo -= sInfo * Utils.log2(sInfo);
         }
     	return splitInfo;
     }
@@ -554,7 +558,8 @@ public class Grupp3Labb1
      */
     private Instances[] binarySplitDataNominal(Instances data, Attribute att) {
         m_NumberOfSplits = 2;
-        splitValues = new double[m_NumberOfSplits-1];
+        splitValues = new double[m_NumberOfSplits];
+
         Instances[] splitData = new Instances[m_NumberOfSplits];
         for (int i = 0; i < splitData.length; i++)
             splitData[i] = data.stringFreeStructure();
@@ -596,6 +601,7 @@ public class Grupp3Labb1
         Instance inst;
         m_NumberOfSplits = 2;
         splitValues = new double[m_NumberOfSplits];
+
         Instances[] splitData = new Instances[m_NumberOfSplits];
         for (int i = 0; i < splitData.length; i++) {
             splitData[i] = data.stringFreeStructure();
@@ -667,6 +673,10 @@ public class Grupp3Labb1
      * @return the sets of instances produced by the split
      */
     private Instances[] splitDataNominal(Instances data, Attribute att) {
+        // TODO: Not static
+        m_NumberOfSplits = 7;
+        splitValues = new double[m_NumberOfSplits];
+
         Instances[] splitData = new Instances[att.numValues()];
         for (int j = 0; j < att.numValues(); j++) {
             splitData[j] = new Instances(data, data.numInstances());
@@ -705,6 +715,7 @@ public class Grupp3Labb1
             else
                 break;
         }
+        splitValues = new double[m_NumberOfSplits];
         printDebugMessage(String.format("m_NumberOfSplits: %d", m_NumberOfSplits));
 
         Instances[] splitData = new Instances[m_NumberOfSplits];
@@ -728,7 +739,6 @@ public class Grupp3Labb1
         double splitValue = diff / m_NumberOfSplits;
 
         // Set distribution
-        splitValues = new double[m_NumberOfSplits];
         double value = minValue + splitValue;
         for(int i = 0; i < m_NumberOfSplits; i++) {
             splitValues[i] = value;
@@ -948,7 +958,7 @@ public class Grupp3Labb1
             return "Grupp3Labb1: No model built yet.";
 
         return String.format("Grupp3Labb1\n------------------\n%s\n\nSize of the tree: %d\n\nNumber of leaves: %d",
-                new Object[]{toString(0), (int) measureTreeSize(), (int)measureNumLeaves()});
+                new Object[]{toString(0), (int)measureTreeSize(), (int)measureNumLeaves()});
     }
 
     /**
