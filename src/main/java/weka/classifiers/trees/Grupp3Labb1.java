@@ -723,14 +723,23 @@ public class Grupp3Labb1
      */
     private Instances[] splitDataNumeric(Instances data, Attribute att) {
         double maxValue = Double.NEGATIVE_INFINITY, minValue = Double.POSITIVE_INFINITY;
-        int i = 0, j = 0;
         Instance inst;
 
         m_NumberOfSplits = 3;
-        // TODO: Heuristic for m_NumberOfSplits
+        // Heuristic for m_NumberOfSplits
+        int tmp = 1;
+        while(m_NumberOfSplits <= MAX_SPLIT) {
+            // Get 7^x value
+            tmp = MAX_SPLIT;
+
+            if(data.numInstances() > tmp)
+                m_NumberOfSplits++;
+            else
+                break;
+        }
 
         Instances[] splitData = new Instances[m_NumberOfSplits];
-        for (i = 0; i < splitData.length; i++) {
+        for (int i = 0; i < splitData.length; i++) {
             splitData[i] = data.stringFreeStructure();
         }
 
@@ -751,7 +760,7 @@ public class Grupp3Labb1
 
         // Set distribution
         double value = minValue + splitValue;
-        for(i = 0; i < m_NumberOfSplits; i++) {
+        for(int i = 0; i < m_NumberOfSplits; i++) {
             splitValues[i] = value;
             value += splitValue;
         }
@@ -766,7 +775,7 @@ public class Grupp3Labb1
                 // Inst. intervall is between min-max
                 double bound = minValue + splitValue;
 
-                for(i = 0; i < m_NumberOfSplits; i++) {
+                for(int i = 0; i < m_NumberOfSplits; i++) {
                     if(bound < inst.value(att))
                         bound += splitValue;
                     else {
