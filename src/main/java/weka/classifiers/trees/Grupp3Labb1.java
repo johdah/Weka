@@ -329,11 +329,17 @@ public class Grupp3Labb1
      */
     public double classifyInstance(Instance instance)
             throws NoSupportForMissingValuesException {
-        if (instance.hasMissingValue())
-            return handleMissingValue();
+        if (instance.hasMissingValue()){
+            //instance.setValue(m_Attribute, instance.dataset().meanOrMode(m_Attribute));
+            double meanOrMode =   instance.dataset().meanOrMode(m_Attribute.index());
+            return meanOrMode;
+            //return m_MajorityClass;
+            //return handleMissingValue();
+        }
 
-        if (m_Attribute == null)
+        if (m_Attribute == null){
             return m_ClassValue;
+        }
 
         // TODO: Bad for binary
         return m_Successors[(int) instance.value(m_Attribute)].classifyInstance(instance);
@@ -352,8 +358,15 @@ public class Grupp3Labb1
         if (m_Attribute == null) {
             return m_Distribution;
         } else {
-            if(instance.isMissing(m_Attribute))
-                instance.setValue(m_Attribute, handleMissingValue());
+            if(instance.isMissing(m_Attribute)){
+
+                // instance.dataset().meanOrMode(m_Attribute)
+                double meanOrMode = instance.dataset().meanOrMode(m_Attribute.index());
+                instance.setValue(m_Attribute,meanOrMode);
+
+                //instance.setValue(m_Attribute,m_MajorityClass);
+                //instance.setValue(m_Attribute, handleMissingValue());
+            }
             if(m_Attribute.isNumeric()) {
                 for(int i = 0; i < splitValues.length; i++){
                     if(instance.value(m_Attribute) <= splitValues[i]){
@@ -371,16 +384,13 @@ public class Grupp3Labb1
                 }
             }
         }
+        try{
+            return m_Successors[index].distributionForInstance(instance);
+        } catch (Exception e){
+            printDebugMessage("nullPointerExceptionMotherFucker!");
+            return m_Successors[index].distributionForInstance(instance);
+        }
 
-        return m_Successors[index].distributionForInstance(instance);
-    }
-
-    /**
-     * Handle missing value
-     * @return the value to fill the missing
-     */
-    private double handleMissingValue() {
-        return m_MajorityClass;
     }
 
     /**
@@ -699,74 +709,102 @@ public class Grupp3Labb1
         return splitData;
     }
 
+
+    private int getSplitInterval(int N){
+        int k;
+        //k = log2(N)
+        printDebugMessage("räknar k");
+        //k = (int)(Math.log(N) / Math.log(2)); //log2(N) fails
+        k = (int)Utils.log2(N);
+        if(k < 2)
+            k = 2;
+        printDebugMessage(String.format("%d", m_NumberOfSplits));
+        return k;
+    }
+
+
     /**
+     *
      * @param data the data which is to be split
      * @param att the attribute to be used for splitting
      * @return the sets of instances produced by the split
      */
     private Instances[] splitDataNumeric(Instances data, Attribute att) {
-        double maxValue = Double.NEGATIVE_INFINITY, minValue = Double.POSITIVE_INFINITY;
-        Instance inst;
-        splitValues = new double[m_NumberOfSplits];
-        printDebugMessage(String.format("m_NumberOfSplits: %d", m_NumberOfSplits));
+            double maxValue = Double.NEGATIVE_INFINITY, minValue = Double.POSITIVE_INFINITY;
+            int numberOfSplitInterval;
+            numberOfSplitInterval = getSplitInterval(data.numInstances());
 
-        Instances[] splitData = new Instances[m_NumberOfSplits];
-        for (int i = 0; i < splitData.length; i++) {
-            splitData[i] = data.stringFreeStructure();
-        }
+            Instance inst;
+            splitValues = new double[numberOfSplitInterval];
+            //printDebugMessage(String.format("m_NumberOfSplits: %d", m_NumberOfSplits));
 
-        // Get min-max values from instances
-        Enumeration instEnum = data.enumerateInstances();
-        while(instEnum.hasMoreElements()) {
-            inst = (Instance) instEnum.nextElement();
-            double value = inst.value(att);
+            printDebugMessage("startloop");
 
-            if(maxValue < value)
-                maxValue = value;
-            if(minValue > value)
-                minValue = value;
-        }
+            Instances[] splitData = new Instances[numberOfSplitInterval];
+            for (int i = 0; i < splitData.length; i++) {
+                splitData[i] = data.stringFreeStructure();
+            }
+            printDebugMessage("slutloop");
 
-        double diff = maxValue - minValue;
-        double splitValue = diff / m_NumberOfSplits;
+            // Get min-max values from instances
+            Enumeration instEnum = data.enumerateInstances();
+            while(instEnum.hasMoreElements()) {
+                inst = (Instance) instEnum.nextElement();
+                double value = inst.value(att);
 
-        // Set distribution
-        double value = minValue + splitValue;
-        for(int i = 0; i < m_NumberOfSplits; i++) {
-            splitValues[i] = value;
-            value += splitValue;
-        }
+                if(maxValue < value)
+                    maxValue = value;
+                if(minValue > value)
+                    minValue = value;
+            }
 
-        // Adding instances to new split attribute
-        instEnum = data.enumerateInstances();
-        while (instEnum.hasMoreElements()) {
-            inst = (Instance) instEnum.nextElement();
+            double diff = maxValue - minValue;
+            double splitValue = diff / numberOfSplitInterval;
 
-            int index = -1;
-            if(!inst.hasMissingValue()) {
-                // Inst. intervall is between min-max
-                double bound = minValue + splitValue;
+            // Set distribution
+            double value = minValue + splitValue;
+            for(int i = 0; i < numberOfSplitInterval; i++) {
+                splitValues[i] = value;
+                value += splitValue;
+            }
 
-                for(int i = 0; i < m_NumberOfSplits; i++) {
-                    if(bound < inst.value(att))
-                        bound += splitValue;
-                    else {
-                        index = i;
-                        i = m_NumberOfSplits;
+            // Adding instances to new split attribute
+            instEnum = data.enumerateInstances();
+            while (instEnum.hasMoreElements()) {
+                inst = (Instance) instEnum.nextElement();
+
+                int index = -1;
+                if(!inst.hasMissingValue()) {
+                    // Inst. intervall is between min-max
+                    double bound = minValue + splitValue;
+
+                    for(int i = 0; i < numberOfSplitInterval; i++) {
+                        if(bound < inst.value(att))
+                            bound += splitValue;
+                        else {
+                            index = i;
+                            i = numberOfSplitInterval;
+                        }
+
+                        if(i == numberOfSplitInterval-1)
+                            index = i;
                     }
-
-                    if(i == m_NumberOfSplits-1)
-                        index = i;
+                    //System.out.println(index);
+                    splitData[index].add(inst);
                 }
 
-                splitData[index].add(inst);
+
+
+
             }
-        }
 
         for (Instances aSplitData : splitData) {
             aSplitData.compactify();
         }
-
+        if(numberOfSplitInterval == 2){
+            printDebugMessage("numberOfSplitInterval =2");
+        }
+        printDebugMessage("return splitdata");
         return splitData;
     }
 
