@@ -245,7 +245,7 @@ public class Grupp3Labb1
             m_Attribute = data.attribute(Utils.maxIndex(bestAttr));
             printDebugMessage("\nGainRatio for Atributes:");
         } else {
-            m_Attribute = data.attribute(Utils.minIndex(bestAttr));
+            m_Attribute = data.attribute(Utils.maxIndex(bestAttr));
             printDebugMessage("\nGiniIndex for Atributes:");
         }
         printDebugMessage("\nChoosing: " + m_Attribute.index() + " (" + m_Attribute.name() + ")\n");
@@ -338,7 +338,7 @@ public class Grupp3Labb1
         } else {
             if(instance.isMissing(m_Attribute))
                 instance.setValue(m_Attribute, handleMissingValue());
-            if(m_Attribute.isNumeric()) {
+            /*if(m_Attribute.isNumeric()) {
                 for(int i = 0; i < splitValues.length; i++){
                     if(instance.value(m_Attribute) <= splitValues[i]){
                         index = i;
@@ -355,8 +355,8 @@ public class Grupp3Labb1
                 }
             }
             return m_Successors[index].distributionForInstance(instance);
-        }
-            /*if(m_UseBinarySplits) {
+        }*/
+            if(m_UseBinarySplits) {
                 if (!m_Attribute.isNumeric())
                     if(instance.value(m_Attribute) == splitValues[0]) index = 0;
                 else {
@@ -380,9 +380,9 @@ public class Grupp3Labb1
                         break;
                     }
                 }
-            } */
+            }
     }
-         /*
+
         //TODO: NPE
         try {
             return m_Successors[index].distributionForInstance(instance);
@@ -390,7 +390,7 @@ public class Grupp3Labb1
             e.printStackTrace();
             return m_Successors[index].distributionForInstance(instance);
         }
-    } */
+    }
 
     /**
      * Handle missing value
@@ -436,33 +436,35 @@ public class Grupp3Labb1
      */
     private double computeGiniIndex(Instances data, Attribute att){
     	Instances[] splitData = getSplitData(data, att);
-    	double gini = 0;
+    	double gini = computeNode(data);
 
         for (Instances aSplitData : splitData) {
-            double nodeResult = 1.0;
 
-            double[] classCount = new double[data.numClasses()];
-            for (int init = 0; init < data.numClasses(); init++) {
-                classCount[init] = 0;
-            }
-
-            // Count class frequency.
-            for (int j = 0; j < data.numInstances(); j++) {
-                classCount[(int) data.instance(j).classValue()]++;
-            }
-
-            //for each class result - P(C1)^2.. loop and do P(C2)^2.. and so on
-            for (double aClassCount : classCount) {
-                double p = aClassCount / (double) data.numInstances();
-                nodeResult = nodeResult - (p * p);
-            }
-
-            gini += ((double) splitData.length / (double) data.size()) * nodeResult;
+            gini -= ((double) aSplitData.size() / (double) data.size()) * computeNode(aSplitData);
         }
 
     	return gini;
     }
+    private double computeNode(Instances data){
+        double nodeResult = 1.0;
 
+        double[] classCount = new double[data.numClasses()];
+        for (int init = 0; init < data.numClasses(); init++) {
+            classCount[init] = 0;
+        }
+
+        // Count class frequency.
+        for (int j = 0; j < data.numInstances(); j++) {
+            classCount[(int) data.instance(j).classValue()]++;
+        }
+
+        //for each class result - P(C1)^2.. loop and do P(C2)^2.. and so on
+        for (double aClassCount : classCount) {
+            double p = aClassCount / (double) data.numInstances();
+            nodeResult = nodeResult - (p * p);
+        }
+        return nodeResult;
+    }
     /**
      * @param data the data for which info gain is to be computed
      * @param att the attribute
@@ -616,10 +618,10 @@ public class Grupp3Labb1
     private Instances[] binarySplitDataNumeric(Instances data, Attribute att) {
         double maxValue = Double.NEGATIVE_INFINITY, minValue = Double.POSITIVE_INFINITY;
         Instance inst;
-        m_NumberOfSplits = 2;
-        splitValues = new double[m_NumberOfSplits ];
+        m_NumberOfSplits = 1;
+        splitValues = new double[m_NumberOfSplits];
 
-        Instances[] splitData = new Instances[m_NumberOfSplits];
+        Instances[] splitData = new Instances[2];
         for (int i = 0; i < splitData.length; i++) {
             splitData[i] = data.stringFreeStructure();
         }
@@ -637,7 +639,7 @@ public class Grupp3Labb1
         }
 
         double diff = maxValue - minValue;
-        double splitValue = diff / m_NumberOfSplits;
+        double splitValue = diff / 2;
 
         // Set distribution splitValue
         double value = minValue + splitValue;
