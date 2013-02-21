@@ -229,6 +229,22 @@ public class Grupp3Labb1
             return;
         }
 
+        if(m_UseBinarySplits)
+            m_NumberOfSplits = 2;
+        else {
+            m_NumberOfSplits = MIN_SPLIT;
+            int tmp;
+            while(m_NumberOfSplits < MAX_SPLIT) {
+                // Get 7^x value
+                tmp = MAX_SPLIT;
+
+                if(data.numInstances() > tmp)
+                    m_NumberOfSplits++;
+                else
+                    break;
+            }
+        }
+
         printDebugMessage("\n--------------NEW NODE--------------");
         printDebugMessage("\nNumber of instances in: " + data.numInstances());
 
@@ -257,7 +273,7 @@ public class Grupp3Labb1
             m_Successors = new Grupp3Labb1[splitData.length];
 
             for (int i = 0; i < splitData.length; i++) {
-                if (splitData[i].numInstances() < m_MinimumLeafSize)
+                if (splitData[i].numInstances() <= m_MinimumLeafSize)
                     continue;
 
                 m_Successors[i] = new Grupp3Labb1();
@@ -354,43 +370,10 @@ public class Grupp3Labb1
                     index = (int) instance.value(m_Attribute);
                 }
             }
-            return m_Successors[index].distributionForInstance(instance);
         }
-            /*if(m_UseBinarySplits) {
-                if (!m_Attribute.isNumeric())
-                    if(instance.value(m_Attribute) == splitValues[0]) index = 0;
-                else {
-                    for(int i = 0; i < splitValues.length; i++) {
-                        if (instance.value(m_Attribute) > splitValues[i])
-                            continue;
 
-                        index = i;
-                        break;
-                    }
-                }
-            } else {
-                if (!m_Attribute.isNumeric())
-                    index = (int) instance.value(m_Attribute);
-                else {
-                    for(int i = 0; i < splitValues.length; i++) {
-                        if (instance.value(m_Attribute) > splitValues[i])
-                            continue;
-
-                        index = i;
-                        break;
-                    }
-                }
-            } */
+        return m_Successors[index].distributionForInstance(instance);
     }
-         /*
-        //TODO: NPE
-        try {
-            return m_Successors[index].distributionForInstance(instance);
-        } catch(Exception e) {
-            e.printStackTrace();
-            return m_Successors[index].distributionForInstance(instance);
-        }
-    } */
 
     /**
      * Handle missing value
@@ -561,8 +544,6 @@ public class Grupp3Labb1
             return null;
         }
 
-        m_NumberOfSplits = 1;
-
         if(att.isNominal())
             return binarySplitDataNominal(data, att);
         else if(att.isNumeric())
@@ -618,7 +599,6 @@ public class Grupp3Labb1
     private Instances[] binarySplitDataNumeric(Instances data, Attribute att) {
         double maxValue = Double.NEGATIVE_INFINITY, minValue = Double.POSITIVE_INFINITY;
         Instance inst;
-        m_NumberOfSplits = 2;
         splitValues = new double[m_NumberOfSplits ];
 
         Instances[] splitData = new Instances[m_NumberOfSplits];
@@ -721,19 +701,6 @@ public class Grupp3Labb1
     private Instances[] splitDataNumeric(Instances data, Attribute att) {
         double maxValue = Double.NEGATIVE_INFINITY, minValue = Double.POSITIVE_INFINITY;
         Instance inst;
-
-        m_NumberOfSplits = MIN_SPLIT;
-        // Heuristic for m_NumberOfSplits
-        int tmp;
-        while(m_NumberOfSplits < MAX_SPLIT) {
-            // Get 7^x value
-            tmp = MAX_SPLIT;
-
-            if(data.numInstances() > tmp)
-                m_NumberOfSplits++;
-            else
-                break;
-        }
         splitValues = new double[m_NumberOfSplits];
         printDebugMessage(String.format("m_NumberOfSplits: %d", m_NumberOfSplits));
 
