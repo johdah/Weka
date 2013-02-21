@@ -313,11 +313,17 @@ public class Grupp3Labb1
      */
     public double classifyInstance(Instance instance)
             throws NoSupportForMissingValuesException {
-        if (instance.hasMissingValue())
-            return handleMissingValue();
+        if (instance.hasMissingValue()){
+            //instance.setValue(m_Attribute, instance.dataset().meanOrMode(m_Attribute));
+            double meanOrMode =   instance.dataset().meanOrMode(m_Attribute.index());
+            return meanOrMode;
+            //return m_MajorityClass;
+            //return handleMissingValue();
+        }
 
-        if (m_Attribute == null)
+        if (m_Attribute == null){
             return m_ClassValue;
+        }
 
         // TODO: Bad for binary
         return m_Successors[(int) instance.value(m_Attribute)].classifyInstance(instance);
@@ -336,8 +342,15 @@ public class Grupp3Labb1
         if (m_Attribute == null) {
             return m_Distribution;
         } else {
-            if(instance.isMissing(m_Attribute))
-                instance.setValue(m_Attribute, handleMissingValue());
+            if(instance.isMissing(m_Attribute)){
+
+                // instance.dataset().meanOrMode(m_Attribute)
+                double meanOrMode = instance.dataset().meanOrMode(m_Attribute.index());
+                instance.setValue(m_Attribute,meanOrMode);
+
+                //instance.setValue(m_Attribute,m_MajorityClass);
+                //instance.setValue(m_Attribute, handleMissingValue());
+            }
             if(m_Attribute.isNumeric()) {
                 for(int i = 0; i < splitValues.length; i++){
                     if(instance.value(m_Attribute) <= splitValues[i]){
@@ -391,14 +404,6 @@ public class Grupp3Labb1
             return m_Successors[index].distributionForInstance(instance);
         }
     } */
-
-    /**
-     * Handle missing value
-     * @return the value to fill the missing
-     */
-    private double handleMissingValue() {
-        return m_MajorityClass;
-    }
 
     /**
     /**
