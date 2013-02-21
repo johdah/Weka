@@ -599,7 +599,7 @@ public class Grupp3Labb1
     private Instances[] binarySplitDataNumeric(Instances data, Attribute att) {
         double maxValue = Double.NEGATIVE_INFINITY, minValue = Double.POSITIVE_INFINITY;
         Instance inst;
-        splitValues = new double[m_NumberOfSplits ];
+        splitValues = new double[m_NumberOfSplits];
 
         Instances[] splitData = new Instances[m_NumberOfSplits];
         for (int i = 0; i < splitData.length; i++) {
@@ -610,7 +610,13 @@ public class Grupp3Labb1
         Enumeration instEnum = data.enumerateInstances();
         while (instEnum.hasMoreElements()) {
             inst = (Instance) instEnum.nextElement();
-            double value = inst.value(att);
+            //double value = inst.value(att);
+            double value = 0;
+            try {
+                value = computeAttributeValue(data, inst.classAttribute());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
             if(maxValue < value)
                 maxValue = value;
@@ -943,7 +949,7 @@ public class Grupp3Labb1
         if ((m_Distribution == null) && (m_Successors == null))
             return "Grupp3Labb1: No model built yet.";
 
-        return String.format("Grupp3Labb1\n------------------\n%s\n\nSize of the tree: %d\n\nNumber of leaves: %d",
+        return String.format("Grupp3Labb1\n------------------\n%s\n\nSize of the tree: %d\nNumber of leaves: %d",
                 new Object[]{toString(0), (int)measureTreeSize(), (int)measureNumLeaves()});
     }
 
@@ -960,19 +966,40 @@ public class Grupp3Labb1
             if (Utils.isMissingValue(m_ClassValue))
                 text.append(": null");
             else
-                text.append(": ").append(m_ClassAttribute.value((int) m_ClassValue)).append(leafInfo());
+                text.append(": ").append(leafInfo());
         } else {
             for (int i = 0; i < m_Successors.length; i++) {
                 text.append("\n");
                 for (int j = 0; j < level; j++)
                     text.append("|  ");
 
-                text.append(m_Attribute.name()).append(" = ").append(m_Attribute.value(i));
+                text.append(m_Attribute.name());//.append(" = ").append(m_Attribute.value(i));
+                if(m_Attribute.isNominal())
+                    text.append(" = " + m_Attribute.value(i));
+                else {
+                    if(i == 0)
+                        text.append(" <= ");// + Utils.doubleToString())
+                    else
+                        text.append(" > ");// + Utils.doubleToString());
+                }
+
+                /*
+    if (data.attribute(m_attIndex).isNominal())
+      text.append(" = "+
+		  data.attribute(m_attIndex).value(index));
+    else
+      if (index == 0)
+	text.append(" <= "+
+		    Utils.doubleToString(m_splitPoint,6));
+      else
+	text.append(" > "+
+		    Utils.doubleToString(m_splitPoint,6));;*/
 
                 if(m_Successors[i] != null)
                     text.append(m_Successors[i].toString(level + 1));
             }
         }
+
         return text.toString();
     }
 
@@ -982,9 +1009,11 @@ public class Grupp3Labb1
      * @return leafInfo
      */
     public String leafInfo() {
-        Enumeration instances = m_Data.enumerateInstances();
         double sum = 0, error = 0;
+        StringBuffer text = new StringBuffer();
+        text.append(m_Data.classAttribute().value((int) m_ClassValue));
 
+        Enumeration instances = m_Data.enumerateInstances();
         while(instances.hasMoreElements()) {
             Instance inst = (Instance) instances.nextElement();
             sum++;
@@ -1000,9 +1029,16 @@ public class Grupp3Labb1
             info = " (" + sum + ")";
         else
             info = " (" + sum + "/" + error + ")";
-        //text.append("("+m_numInstances+"/"+(int)((double) m_numInstances*unclassified)+")");
+        text.append(info);
 
-        return info;
+
+        /*text.append(((Instances)data).classAttribute().
+		value(m_distribution.maxClass(index)));
+    text.append(" ("+Utils.roundDouble(m_distribution.perBag(index),2));
+    if (Utils.gr(m_distribution.numIncorrect(index),0))
+      text.append("/"+Utils.roundDouble(m_distribution.numIncorrect(index),2));
+    text.append(")");*/
+        return text.toString();
     }
 
     /**
