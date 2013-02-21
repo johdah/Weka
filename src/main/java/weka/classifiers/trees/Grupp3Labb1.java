@@ -1016,22 +1016,10 @@ public class Grupp3Labb1
                     text.append(" = " + m_Attribute.value(i));
                 else {
                     if(i == 0)
-                        text.append(" <= ");// + Utils.doubleToString())
+                        text.append(" <= ");// + Utils.doubleToString(m_splitPoint,6))
                     else
-                        text.append(" > ");// + Utils.doubleToString());
+                        text.append(" > ");// + Utils.doubleToString(m_splitPoint,6));
                 }
-
-                /*
-    if (data.attribute(m_attIndex).isNominal())
-      text.append(" = "+
-		  data.attribute(m_attIndex).value(index));
-    else
-      if (index == 0)
-	text.append(" <= "+
-		    Utils.doubleToString(m_splitPoint,6));
-      else
-	text.append(" > "+
-		    Utils.doubleToString(m_splitPoint,6));;*/
 
                 if(m_Successors[i] != null)
                     text.append(m_Successors[i].toString(level + 1));
