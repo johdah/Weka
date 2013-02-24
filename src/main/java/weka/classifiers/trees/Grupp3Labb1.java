@@ -1049,8 +1049,8 @@ public class Grupp3Labb1
         if ((m_Distribution == null) && (m_Successors == null))
             return "Grupp3Labb1: No model built yet.";
 
-        return String.format("Grupp3Labb1\n------------------\n%s\n\nSize of the tree: %d\n\nNumber of leaves: %d",
-                new Object[]{toString(0), (int)measureTreeSize(), (int)measureNumLeaves()});
+        return String.format("Grupp3Labb1\n------------------\n%s\n\nSize of the tree: %d\nNumber of leaves: %d",
+                toString(0), (int)measureTreeSize(), (int)measureNumLeaves());
     }
 
     /**
@@ -1066,14 +1066,15 @@ public class Grupp3Labb1
             if (Utils.isMissingValue(m_ClassValue))
                 text.append(": null");
             else
-                text.append(": ").append(m_ClassAttribute.value((int) m_ClassValue)).append(leafInfo());
+                text.append(": ").append(toStringLeafInfo());
         } else {
             for (int i = 0; i < m_Successors.length; i++) {
                 text.append("\n");
                 for (int j = 0; j < level; j++)
                     text.append("|  ");
 
-                text.append(m_Attribute.name()).append(" = ").append(m_Attribute.value(i));
+                text.append(m_Attribute.name());//.append(" = ").append(m_Attribute.value(i));
+                toStringSplitInfo(text, i);
 
                 if(m_Successors[i] != null)
                     text.append(m_Successors[i].toString(level + 1));
@@ -1083,14 +1084,41 @@ public class Grupp3Labb1
     }
 
     /**
+     * Prints info about the split
+     *
+     * @param text previous tree info
+     * @param i current successor
+     */
+    private void toStringSplitInfo(StringBuilder text, int i) {
+        if(m_Attribute.isNominal())
+            text.append(" = ").append(m_Attribute.value(i));
+        else {
+            if(i == 0)
+                text.append(" <= ");
+            else
+                text.append(" > ");
+
+            if(splitValues.length > 0) {
+                try {
+                    text.append(Utils.doubleToString(splitValues[0], 6)); // + Utils.doubleToString(m_splitPoint,6))
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    /**
      * Print info about the leaf
      *
-     * @return leafInfo
+     * @return leaf info
      */
-    public String leafInfo() {
-        Enumeration instances = m_Data.enumerateInstances();
+    public String toStringLeafInfo() {
         double sum = 0, error = 0;
+        StringBuilder text = new StringBuilder();
+        text.append(m_Data.classAttribute().value((int) m_ClassValue));
 
+        Enumeration instances = m_Data.enumerateInstances();
         while(instances.hasMoreElements()) {
             Instance inst = (Instance) instances.nextElement();
             sum++;
@@ -1106,9 +1134,15 @@ public class Grupp3Labb1
             info = " (" + sum + ")";
         else
             info = " (" + sum + "/" + error + ")";
-        //text.append("("+m_numInstances+"/"+(int)((double) m_numInstances*unclassified)+")");
+        text.append(info);
 
-        return info;
+        /*text.append(((Instances)data).classAttribute().
+            value(m_distribution.maxClass(index)));
+        text.append(" ("+Utils.roundDouble(m_distribution.perBag(index),2));
+        if (Utils.gr(m_distribution.numIncorrect(index),0))
+          text.append("/"+Utils.roundDouble(m_distribution.numIncorrect(index),2));
+        text.append(")");*/
+        return text.toString();
     }
 
     /**
