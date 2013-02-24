@@ -115,6 +115,7 @@ public class Grupp3Labb1
     /** The minimum leaf size */
     private double m_MinimumLeafSize;
     /** The majority class */
+    @SuppressWarnings("UnusedDeclaration")
     private static int m_MajorityClass;
     /** The spliting method */
     public static Tag[] TAGS_SplitMethod = {
@@ -342,10 +343,7 @@ public class Grupp3Labb1
             throws NoSupportForMissingValuesException {
         if (instance.hasMissingValue()){
             //instance.setValue(m_Attribute, instance.dataset().meanOrMode(m_Attribute));
-            double meanOrMode =   instance.dataset().meanOrMode(m_Attribute.index());
-            return meanOrMode;
-            //return m_MajorityClass;
-            //return handleMissingValue();
+            return instance.dataset().meanOrMode(m_Attribute.index());
         }
 
         if (m_Attribute == null){
@@ -444,6 +442,7 @@ public class Grupp3Labb1
 
         if(splitData == null) return gini;
 
+        //noinspection UnusedDeclaration
         for (Instances aSplitData : splitData) {
             double nodeResult = 1.0;
 
@@ -612,20 +611,16 @@ public class Grupp3Labb1
         splitValues[0] = splitValue;
 
         printDebugMessage("Best split:");
-        try{
-            printDebugMessage("1:"+splitData[0].attribute(att.index()).toString() + " = " + splitData[0].instance(att.index()).toString());
-            printDebugMessage("Number of Instances: "+Integer.toString(splitData[0].numInstances()));
-        }catch (Exception e){
 
+        if(splitData.length > 1 && att.index() < splitData[0].numAttributes() && att.index() < splitData[0].numInstances()) {
+            printDebugMessage(String.format("1:%s = %s", splitData[0].attribute(att.index()).toString(), splitData[0].instance(att.index()).toString()));
+            printDebugMessage(String.format("Number of Instances: %s", Integer.toString(splitData[0].numInstances())));
         }
 
-        try{
-            printDebugMessage("2:"+splitData[1].attribute(att.index()).toString() + " = " + splitData[1].instance(att.index()).toString());
-            printDebugMessage("Number of Instances: "+Integer.toString(splitData[1].numInstances()));
-        }catch (Exception e){
-
+        if(splitData.length > 2 && att.index() < splitData[1].numAttributes() && att.index() < splitData[1].numInstances()) {
+            printDebugMessage(String.format("2:%s = %s", splitData[1].attribute(att.index()).toString(), splitData[1].instance(att.index()).toString()));
+            printDebugMessage(String.format("Number of Instances: %s", Integer.toString(splitData[1].numInstances())));
         }
-
 
         return splitData;
     }
@@ -689,21 +684,15 @@ public class Grupp3Labb1
         }
 
         printDebugMessage("Best split:");
-        try{
-            printDebugMessage("1:"+splitData[0].attribute(att.index()).toString() + " = " + splitData[0].instance(att.index()).toString());
-            printDebugMessage("Number of Instances: "+Integer.toString(splitData[0].numInstances()));
-        }catch (Exception e){
-
+        if(splitData.length > 1 && att.index() < splitData[0].numAttributes() && att.index() < splitData[0].numInstances()) {
+            printDebugMessage(String.format("1:%s = %s", splitData[0].attribute(att.index()).toString(), splitData[0].instance(att.index()).toString()));
+            printDebugMessage(String.format("Number of Instances: %s", Integer.toString(splitData[0].numInstances())));
         }
 
-        try{
-            printDebugMessage("2:"+splitData[1].attribute(att.index()).toString() + " = " + splitData[1].instance(att.index()).toString());
-            printDebugMessage("Number of Instances: "+Integer.toString(splitData[1].numInstances()));
-        }catch (Exception e){
-
+        if(splitData.length > 2 && att.index() < splitData[1].numAttributes() && att.index() < splitData[1].numInstances()) {
+            printDebugMessage(String.format("2:%s = %s", splitData[1].attribute(att.index()).toString(), splitData[1].instance(att.index()).toString()));
+            printDebugMessage(String.format("Number of Instances: %s", Integer.toString(splitData[1].numInstances())));
         }
-
-
 
         return splitData;
     }
@@ -751,7 +740,7 @@ public class Grupp3Labb1
 
         printDebugMessage("Number of edges: " + splitData.length);
         printDebugMessage("Best split:");
-        if(m_Debug == true){
+        if(m_Debug){
             for(int i = 0; i < splitData.length; i++){
                 try{
                     printDebugMessage((i+1)+": "+splitData[i].attribute(att.index()).toString() + " = " + splitData[i].instance(att.index()).toString());
@@ -856,7 +845,7 @@ public class Grupp3Labb1
         printDebugMessage("Number of edges: " + splitData.length);
         printDebugMessage("Best split:");
 
-        if(m_Debug == true)
+        if(m_Debug)
         {
             for(int i = 0; i < splitData.length; i++){
                 try{
