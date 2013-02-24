@@ -281,6 +281,8 @@ public class Grupp3Labb1
                 m_Successors[i].m_MinimumLeafSize = m_MinimumLeafSize;
                 m_Successors[i].m_SplitMethod = m_SplitMethod;
                 m_Successors[i].m_UseBinarySplits = m_UseBinarySplits;
+                printDebugMessage("Creating successor #" + (i + 1) + ": " + splitData[i].numInstances() + " instances.");
+
                 m_Successors[i].makeTree(splitData[i]);
             }
         }
@@ -293,6 +295,7 @@ public class Grupp3Labb1
      * @param data the leaf instance
      */
     private void makeLeaf(Instances data) {
+        printDebugMessage("--------------NEW LEAF NODE--------------");
         m_Attribute = null;
         m_Data = data;
         m_Distribution = new double[data.numClasses()];
@@ -306,6 +309,14 @@ public class Grupp3Labb1
         Utils.normalize(m_Distribution);
         m_ClassValue = Utils.maxIndex(m_Distribution);
         m_ClassAttribute = data.classAttribute();
+        printDebugMessage("Number of intances: " + data.numInstances());
+        printDebugMessage("Classified as: " + m_ClassAttribute.value((int) m_ClassValue));
+        printDebugMessage("Classdistribution:");
+        if(m_Debug){
+            for(int i = 0; i < m_Distribution.length; i++){
+                printDebugMessage(i + ".\nAttribute: "+m_ClassAttribute.value(i) + "Distribution: "+m_Distribution[i]);
+            }
+        }
     }
 
     private boolean checkMinLeafSize(Instances[] data ){
@@ -592,12 +603,30 @@ public class Grupp3Labb1
                 splitData[0].add(inst);
             else
                 splitData[1].add(inst);
+            //printDebugMessage(inst.stringValue(att));
         }
        
         for (Instances aSplitData : splitData)
             aSplitData.compactify();
 
         splitValues[0] = splitValue;
+
+        printDebugMessage("Best split:");
+        try{
+            printDebugMessage("1:"+splitData[0].attribute(att.index()).toString() + " = " + splitData[0].instance(att.index()).toString());
+            printDebugMessage("Number of Instances: "+Integer.toString(splitData[0].numInstances()));
+        }catch (Exception e){
+
+        }
+
+        try{
+            printDebugMessage("2:"+splitData[1].attribute(att.index()).toString() + " = " + splitData[1].instance(att.index()).toString());
+            printDebugMessage("Number of Instances: "+Integer.toString(splitData[1].numInstances()));
+        }catch (Exception e){
+
+        }
+
+
         return splitData;
     }
 
@@ -605,11 +634,13 @@ public class Grupp3Labb1
      * @param data the data that is to be split
      * @param att the attribute to be used for splitting
      * @return Best split produced
+     * Suppose there are two ways to split the data into smaller subsets
+     *
      */
     private Instances[] binarySplitDataNumeric(Instances data, Attribute att) {
         double maxValue = Double.NEGATIVE_INFINITY, minValue = Double.POSITIVE_INFINITY;
         Instance inst;
-        splitValues = new double[m_NumberOfSplits ];
+        splitValues = new double[m_NumberOfSplits];
 
         Instances[] splitData = new Instances[m_NumberOfSplits];
         for (int i = 0; i < splitData.length; i++) {
@@ -657,6 +688,23 @@ public class Grupp3Labb1
             aSplitData.compactify();
         }
 
+        printDebugMessage("Best split:");
+        try{
+            printDebugMessage("1:"+splitData[0].attribute(att.index()).toString() + " = " + splitData[0].instance(att.index()).toString());
+            printDebugMessage("Number of Instances: "+Integer.toString(splitData[0].numInstances()));
+        }catch (Exception e){
+
+        }
+
+        try{
+            printDebugMessage("2:"+splitData[1].attribute(att.index()).toString() + " = " + splitData[1].instance(att.index()).toString());
+            printDebugMessage("Number of Instances: "+Integer.toString(splitData[1].numInstances()));
+        }catch (Exception e){
+
+        }
+
+
+
         return splitData;
     }
 
@@ -700,6 +748,21 @@ public class Grupp3Labb1
         for (Instances aSplitData : splitData) {
             aSplitData.compactify();
         }
+
+        printDebugMessage("Number of edges: " + splitData.length);
+        printDebugMessage("Best split:");
+        if(m_Debug == true){
+            for(int i = 0; i < splitData.length; i++){
+                try{
+                    printDebugMessage((i+1)+": "+splitData[i].attribute(att.index()).toString() + " = " + splitData[i].instance(att.index()).toString());
+                    printDebugMessage("Number of Instances: "+Integer.toString(splitData[i].numInstances()));
+                }catch (Exception e){
+
+                }
+            }
+        }
+
+
         return splitData;
     }
 
@@ -790,10 +853,20 @@ public class Grupp3Labb1
         for (Instances aSplitData : splitData) {
             aSplitData.compactify();
         }
-        if(numberOfSplitInterval == 2){
-            printDebugMessage("numberOfSplitInterval =2");
+        printDebugMessage("Number of edges: " + splitData.length);
+        printDebugMessage("Best split:");
+
+        if(m_Debug == true)
+        {
+            for(int i = 0; i < splitData.length; i++){
+                try{
+                    printDebugMessage((i+1)+": "+splitData[i].attribute(att.index()).toString() + " = " + splitData[i].instance(att.index()).toString());
+                    printDebugMessage("Number of Instances: "+Integer.toString(splitData[i].numInstances()));
+                }catch (Exception e){
+
+                }
+            }
         }
-        printDebugMessage("return splitdata");
         return splitData;
     }
 
@@ -1136,7 +1209,7 @@ public class Grupp3Labb1
      */
     private void printDebugMessage(String msg) {
         if (m_Debug)
-            System.out.println("\n" + msg);
+            System.out.println(msg);
     }
 
     /**
