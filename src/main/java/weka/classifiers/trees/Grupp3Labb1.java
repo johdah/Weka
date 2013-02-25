@@ -21,9 +21,7 @@
  */
 package weka.classifiers.trees;
 
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.Vector;
+import java.util.*;
 
 import weka.classifiers.AbstractClassifier;
 import weka.core.AdditionalMeasureProducer;
@@ -437,7 +435,10 @@ public class Grupp3Labb1
      * @return giniIndex
      */
     private double computeGiniIndex(Instances data, Attribute att){
-    	Instances[] splitData = getSplitData(data, att);
+        return computeGiniIndex(data, getSplitData(data, att));
+    }
+
+    private double computeGiniIndex(Instances data, Instances[] splitData){
     	double gini = 0;
 
         if(splitData == null) return gini;
@@ -474,7 +475,10 @@ public class Grupp3Labb1
      * @return splitInfo
      */
     private double computeSplitInfo(Instances data, Attribute att){
-    	Instances[] splitData = getSplitData(data, att);
+        return computeSplitInfo(data, getSplitData(data, att));
+    }
+
+    private double computeSplitInfo(Instances data, Instances[] splitData){
         double splitInfo = 0.0;
 
         if(splitData == null) return splitInfo;
@@ -499,8 +503,12 @@ public class Grupp3Labb1
      */
     private double computeInfoGain(Instances data, Attribute att)
             throws Exception {
+        return computeInfoGain(data, getSplitData(data, att));
+    }
+
+    private double computeInfoGain(Instances data, Instances[] splitData)
+            throws Exception {
         double infoGain = computeEntropy(data);
-        Instances[] splitData = getSplitData(data, att);
 
         if(splitData == null) return infoGain;
 
@@ -633,68 +641,95 @@ public class Grupp3Labb1
      *
      */
     private Instances[] binarySplitDataNumeric(Instances data, Attribute att) {
-        double maxValue = Double.NEGATIVE_INFINITY, minValue = Double.POSITIVE_INFINITY;
-        Instance inst;
-        splitValues = new double[m_NumberOfSplits];
+        List<Instances[]> permutations = new ArrayList<Instances[]>();
+        double[] values;
+        int numOfDistinctValues = data.numDistinctValues(att);
 
-        Instances[] splitData = new Instances[m_NumberOfSplits];
-        for (int i = 0; i < splitData.length; i++) {
-            splitData[i] = data.stringFreeStructure();
-        }
-
-        // Fetch min/max values in instances
+        // Put all distinct values in arraylist
+        List<Double> numValues = new ArrayList<Double>();
         Enumeration instEnum = data.enumerateInstances();
-        while (instEnum.hasMoreElements()) {
-            inst = (Instance) instEnum.nextElement();
-            double value = inst.value(att);
+        while(instEnum.hasMoreElements()) {
+            Instance inst = (Instance)instEnum.nextElement();
 
-            if(maxValue < value)
-                maxValue = value;
-            if(minValue > value)
-                minValue = value;
+            for (int i = 0; i < inst.numValues(); i++) {
+                if(!numValues.contains(inst.value(att)))
+                    numValues.add(inst.value(att));
+            }
+        }
+        Collections.sort(numValues);
+
+        // If not more than one distinct value
+        if (numOfDistinctValues <= 1) {
+            Instances[] binarySplit = new Instances[2];
+            binarySplit[0] = data;
+            binarySplit[1] = new Instances(data, data.numInstances());
+            return binarySplit;
         }
 
-        double diff = maxValue - minValue;
-        double splitValue = diff / m_NumberOfSplits;
+        // If more than one distinct value, create a list of all possible splits
+        for (int i = 0; i < numOfDistinctValues; i++) {
+            Instances[] binarySplit = new Instances[2];
+            binarySplit[0] = new Instances(data, data.numInstances());
+            binarySplit[1] = new Instances(data, data.numInstances());
 
-        // Set distribution splitValue
-        double value = minValue + splitValue;
-        for (int i = 0; i < m_NumberOfSplits; i++) {
-            splitValues[i] = value;
-            value += splitValue;
+            Double value = numValues.get(i);
+            instEnum = data.enumerateInstances();
+            while(instEnum.hasMoreElements()) {
+                Instance inst = (Instance) instEnum.nextElement();
+
+
+                Double value2 = inst.value(att);
+                if(value2 <= value)
+                    binarySplit[0].add(inst);
+                else
+                    binarySplit[1].add(inst);
+            }
+
+            permutations.add(binarySplit);
         }
 
-        instEnum = data.enumerateInstances();
-        while (instEnum.hasMoreElements()) {
-            inst = (Instance) instEnum.nextElement();
+        // If only one permutation
+        if(permutations.size() == 1)
+            return permutations.get(0);
 
-            if(!inst.hasMissingValue()) {
-                double bound = minValue + splitValue;
-
-                if(bound < inst.value(att)) {
-                    splitData[1].add(inst);
-                } else {
-                    splitData[0].add(inst);
+        // Run gini/gain on all
+        values = new double[permutations.size()];
+        for (int i = 0; i < permutations.size(); i++) {
+            if(m_SplitMethod == 1)
+                values[i] = computeGiniIndex(mergeSplit(permutations.get(i)), permutations.get(i));
+            else {
+                double infoGain = 0;
+                try {
+                    infoGain = computeInfoGain(mergeSplit(permutations.get(i)), permutations.get(i));
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
+                double splitInfo = computeSplitInfo(mergeSplit(permutations.get(i)), permutations.get(i));
+
+                if(splitInfo > 0)
+                    values[i] = infoGain / splitInfo;
+                else
+                    values[i] = 0;
             }
         }
 
-        for (Instances aSplitData : splitData) {
-            aSplitData.compactify();
+        // Return best split based on splitmethod
+        if(m_SplitMethod == 1)
+            return permutations.get(Utils.minIndex(values));
+        else
+            return permutations.get(Utils.maxIndex(values));
+    }
+
+    private Instances mergeSplit(Instances[] splitData) {
+        Instances data = new Instances(splitData[0], 0);
+
+        for(Instances inst : splitData) {
+            Enumeration instEnum = inst.enumerateInstances();
+            while(instEnum.hasMoreElements())
+                data.add((Instance)instEnum.nextElement());
         }
 
-        printDebugMessage("Best split:");
-        if(splitData.length > 1 && att.index() < splitData[0].numAttributes() && att.index() < splitData[0].numInstances()) {
-            printDebugMessage(String.format("1:%s = %s", splitData[0].attribute(att.index()).toString(), splitData[0].instance(att.index()).toString()));
-            printDebugMessage(String.format("Number of Instances: %s", Integer.toString(splitData[0].numInstances())));
-        }
-
-        if(splitData.length > 2 && att.index() < splitData[1].numAttributes() && att.index() < splitData[1].numInstances()) {
-            printDebugMessage(String.format("2:%s = %s", splitData[1].attribute(att.index()).toString(), splitData[1].instance(att.index()).toString()));
-            printDebugMessage(String.format("Number of Instances: %s", Integer.toString(splitData[1].numInstances())));
-        }
-
-        return splitData;
+        return data;
     }
 
     /**
