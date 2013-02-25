@@ -647,8 +647,10 @@ public class Grupp3Labb1
      */
     private Instances[] binarySplitDataNumeric(Instances data, Attribute att) {
         List<Instances[]> permutations = new ArrayList<Instances[]>();
+        List<Double> condList = new ArrayList<Double>();
         double[] values;
         int numOfDistinctValues = data.numDistinctValues(att);
+        splitValues = new double[m_NumberOfSplits];
 
         // Put all distinct values in arraylist
         List<Double> numValues = new ArrayList<Double>();
@@ -668,6 +670,7 @@ public class Grupp3Labb1
             Instances[] binarySplit = new Instances[2];
             binarySplit[0] = data;
             binarySplit[1] = new Instances(data, data.numInstances());
+            splitValues[0] = numValues.get(0);
             return binarySplit;
         }
 
@@ -690,12 +693,15 @@ public class Grupp3Labb1
                     binarySplit[1].add(inst);
             }
 
+            condList.add(value);
             permutations.add(binarySplit);
         }
 
         // If only one permutation
-        if(permutations.size() == 1)
+        if(permutations.size() == 1) {
+            splitValues[0] = condList.get(0);
             return permutations.get(0);
+        }
 
         // Run gini/gain on all
         values = new double[permutations.size()];
@@ -719,19 +725,14 @@ public class Grupp3Labb1
         }
 
         // Get best split based on splitmethod
-        int bestSplit;
         if(m_SplitMethod == 1) {
-            bestSplit = Utils.minIndex(values);
+            splitValues[0] = condList.get(Utils.minIndex(values));
+            return permutations.get(Utils.minIndex(values));
         }
-        else
-            bestSplit = Utils.maxIndex(values);
-
-        Instances[] instances = permutations.get(bestSplit);
-
-        splitValues = new double[m_NumberOfSplits];
-        splitValues[0] = values[bestSplit];
-
-        return instances;
+        else {
+            splitValues[0] = condList.get(Utils.maxIndex(values));
+            return permutations.get(Utils.maxIndex(values));
+        }
     }
 
     private Instances mergeSplit(Instances[] splitData) {
