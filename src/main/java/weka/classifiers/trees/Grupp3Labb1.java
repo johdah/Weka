@@ -351,7 +351,12 @@ public class Grupp3Labb1
         }
 
         // TODO: Bad for binary
-        return m_Successors[(int) instance.value(m_Attribute)].classifyInstance(instance);
+        try{
+            return m_Successors[(int) instance.value(m_Attribute)].classifyInstance(instance);
+        } catch (Exception e){
+            printDebugMessage("nullPointerException");
+            return m_Successors[(int) instance.value(m_Attribute)].classifyInstance(instance);
+        }
     }
 
     /**
@@ -396,7 +401,7 @@ public class Grupp3Labb1
         try{
             return m_Successors[index].distributionForInstance(instance);
         } catch (Exception e){
-            printDebugMessage("nullPointerExceptionMotherFucker!");
+            printDebugMessage("nullPointerException");
             return m_Successors[index].distributionForInstance(instance);
         }
 
