@@ -713,11 +713,20 @@ public class Grupp3Labb1
             }
         }
 
-        // Return best split based on splitmethod
-        if(m_SplitMethod == 1)
-            return permutations.get(Utils.minIndex(values));
+        // Get best split based on splitmethod
+        int bestSplit;
+        if(m_SplitMethod == 1) {
+            bestSplit = Utils.minIndex(values);
+        }
         else
-            return permutations.get(Utils.maxIndex(values));
+            bestSplit = Utils.maxIndex(values);
+
+        Instances[] instances = permutations.get(bestSplit);
+
+        splitValues = new double[m_NumberOfSplits];
+        splitValues[0] = values[bestSplit];
+
+        return instances;
     }
 
     private Instances mergeSplit(Instances[] splitData) {
