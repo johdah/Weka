@@ -550,11 +550,6 @@ public class Grupp3Labb1
      * @return Best split produced
      */
     private Instances[] binarySplitData(Instances data, Attribute att) {
-        if(data.numInstances() < 2) {
-            printDebugMessage("You can't try to split less than 2 instances (facepalm)");
-            return null;
-        }
-
         m_NumberOfSplits = 1;
 
         if(att.isNominal())
@@ -750,8 +745,10 @@ public class Grupp3Labb1
                     binarySplit[1].add(inst);
             }
 
-            condList.add(value);
-            permutations.add(binarySplit);
+            if(checkMinLeafSize(binarySplit)) {
+                condList.add(value);
+                permutations.add(binarySplit);
+            }
         }
 
         // If only one permutation
