@@ -1145,7 +1145,6 @@ public class Grupp3Labb1
                 for (int j = 0; j < level; j++)
                     text.append("|  ");
 
-                text.append(m_Attribute.name());//.append(" = ").append(m_Attribute.value(i));
                 toStringSplitInfo(text, i);
 
                 if(m_Successors[i] != null)
@@ -1162,20 +1161,44 @@ public class Grupp3Labb1
      * @param i current successor
      */
     private void toStringSplitInfo(StringBuilder text, int i) {
-        if(m_Attribute.isNominal())
-            text.append(" = ").append(m_Attribute.value(i));
-        else {
-            if(i == 0)
-                text.append(" <= ");
-            else
-                text.append(" > ");
+        if(m_UseBinarySplits) {
+            if(m_Attribute.isNumeric()) {
+                text.append(m_Attribute.name());
+                if(i == 0)
+                    text.append(" <= ");
+                else
+                    text.append(" > ");
 
-            if(splitValues.length > 0) {
-                try {
-                    text.append(Utils.doubleToString(splitValues[0], 6)); // + Utils.doubleToString(m_splitPoint,6))
-                } catch(Exception e) {
-                    e.printStackTrace();
+                if(splitValues.length > 0) {
+                    try {
+                        text.append(Utils.doubleToString(splitValues[0], 6)); // + Utils.doubleToString(m_splitPoint,6))
+                    } catch(Exception e) {
+                        e.printStackTrace();
+                    }
                 }
+            } else {
+                text.append(m_Attribute.name()).append(" = ").append(m_Attribute.value(i));
+            }
+        } else {
+            if(m_Attribute.isNumeric()) {
+                text.append("Condition: ");
+                if (i == 0) {
+                    for (int j = 0; j < m_NumberOfSplits; j++) {
+                        text.append( m_Attribute.name()).append(" = ").append(m_Attribute.value(j));
+                        if (j + 1 != m_NumberOfSplits) {
+                            text.append(" or ");
+                        }
+                    }
+                } else {
+                    for (int k = m_NumberOfSplits; k < m_Attribute.numValues(); k++) {
+                        text.append( m_Attribute.name()).append(" = ").append(m_Attribute.value(k));
+                        if (k + 1 != m_Attribute.numValues()) {
+                            text.append(" or ");
+                        }
+                    }
+                }
+            } else {
+                text.append(m_Attribute.name()).append(" = ").append(m_Attribute.value(i));
             }
         }
     }
