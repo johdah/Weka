@@ -414,37 +414,41 @@ public class Grupp3Labb1
         return computeGiniIndex(data, getSplitData(data, att));
     }
 
+    /**
+     * @param data the data for which gini index is to be computed
+     * @param att the attribute
+     * @return giniIndex
+     */
     private double computeGiniIndex(Instances data, Instances[] splitData){
-        double gini = 0;
+        double gini = computeNode(data);
 
-        if(splitData == null) return gini;
-
-        //noinspection UnusedDeclaration
         for (Instances aSplitData : splitData) {
-            double nodeResult = 1.0;
 
-            double[] classCount = new double[data.numClasses()];
-            for (int init = 0; init < data.numClasses(); init++) {
-                classCount[init] = 0;
-            }
-
-            // Count class frequency.
-            for (int j = 0; j < data.numInstances(); j++) {
-                classCount[(int) data.instance(j).classValue()]++;
-            }
-
-            //for each class result - P(C1)^2.. loop and do P(C2)^2.. and so on
-            for (double aClassCount : classCount) {
-                double p = aClassCount / (double) data.numInstances();
-                nodeResult = nodeResult - (p * p);
-            }
-
-            gini += ((double) splitData.length / (double) data.size()) * nodeResult;
+            gini -= ((double) aSplitData.size() / (double) data.size()) * computeNode(aSplitData);
         }
 
         return gini;
     }
+    private double computeNode(Instances data){
+        double nodeResult = 1.0;
 
+        double[] classCount = new double[data.numClasses()];
+        for (int init = 0; init < data.numClasses(); init++) {
+            classCount[init] = 0;
+        }
+
+        // Count class frequency.
+        for (int j = 0; j < data.numInstances(); j++) {
+            classCount[(int) data.instance(j).classValue()]++;
+        }
+
+        //for each class result - P(C1)^2.. loop and do P(C2)^2.. and so on
+        for (double aClassCount : classCount) {
+            double p = aClassCount / (double) data.numInstances();
+            nodeResult = nodeResult - (p * p);
+        }
+        return nodeResult;
+    }
     /**
      * @param data the data for which info gain is to be computed
      * @param att the attribute
@@ -564,37 +568,127 @@ public class Grupp3Labb1
      * @return Best split produced
      */
     private Instances[] binarySplitDataNominal(Instances data, Attribute att) {
-        splitValues = new double[m_NumberOfSplits];
-
-        Instances[] splitData = new Instances[m_NumberOfSplits+1];
-        for (int i = 0; i < splitData.length; i++)
-            splitData[i] = data.stringFreeStructure();
-
-        // Find out how many occurences there are of each attribute
-        int[] occurrences = new int[att.numValues()];
-        Enumeration instEnum = data.enumerateInstances();
-        while(instEnum.hasMoreElements()) {
-            Instance inst = (Instance) instEnum.nextElement();
-            occurrences[(int) inst.value(att)]++;
+        //Best splitt is saved here.
+        Instances[] bestSplitt = null;
+        ArrayList<Integer> indexBestAttribute = null;
+        double bestEvaluationValue;
+        if(m_SplitMethod == 0){
+            bestEvaluationValue = 0.0;
+        }
+        else{
+            bestEvaluationValue = Double.MAX_VALUE;
         }
 
-        // Pick the value with most occurences as splitValue
-        double splitValue = Utils.maxIndex(occurrences);
-        
-        //split the instances in data depending on splitValue.
-        for(Instance inst : data){
-            // If instance has the same value as splitValue, put in the first bucket
-            if(inst.value(att) == splitValue)
-                splitData[0].add(inst);
-            else
-                splitData[1].add(inst);
-        }
-       
-        for (Instances aSplitData : splitData)
-            aSplitData.compactify();
+        ArrayList<String> possibleSplits = getBinaryPossibilitiesCode(att.numValues());
+        for(int i = 0; i < possibleSplits.size(); i++){
+            String s = possibleSplits.get(i);
+            ArrayList<Integer> attrIndexes = new ArrayList<Integer>();
+            for(int y = 0; y < s.length(); y++){
+                if(s.charAt(y) == '0'){
+                    attrIndexes.add(y);
+                }
+            }
+            //make splits basted on attrIndexes.
+            Instances[] splitData = new Instances[2];
+            for (int a = 0; a < splitData.length; a++) {
+                splitData[a] = data.stringFreeStructure();
+            }
+            for(Instance inst : data){
+                // If instance has the same value as splitValue, put in the first bucket
+                Boolean isAttribValue = false;
+                for(int z = 0; z < attrIndexes.size(); z++){
+                    if(inst.value(att) == attrIndexes.get(z) ){
+                        isAttribValue = true;
+                        z = attrIndexes.size();
+                    }
+                }
+                if(isAttribValue)
+                    splitData[0].add(inst);
+                else
+                    splitData[1].add(inst);
 
-        splitValues[0] = splitValue;
-        return splitData;
+            }
+
+            //evaluate the instances with gainratio/ giniindex.
+
+            if (bestSplitt == null){
+                bestSplitt = splitData;
+            }
+
+            switch (m_SplitMethod) {
+                case 0: //GainRatio
+                    double gainRatio = 0.0;
+
+                    double infoGain = 0;
+                    try {
+                        infoGain = computeInfoGain(data, splitData);
+                    } catch (Exception e) {
+                        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    }
+                    double splitInfo = computeSplitInfo(data, splitData);
+                    if(splitInfo != 0)
+                        gainRatio = infoGain / splitInfo;
+                    //compare
+                    if(gainRatio >= bestEvaluationValue){
+                        bestEvaluationValue = gainRatio;
+                        bestSplitt = splitData;
+                        indexBestAttribute = (ArrayList) attrIndexes.clone();
+                    }
+                case 1: //GiniIndex
+                    double gini = computeGiniIndex(data, splitData);
+                    if(gini <= bestEvaluationValue){
+                        bestEvaluationValue = gini;
+                        bestSplitt = splitData;
+                        indexBestAttribute = (ArrayList) attrIndexes.clone();
+
+                    }
+            }
+        }
+
+        splitValues = new double[indexBestAttribute.size()];
+        for(int b  = 0; b < indexBestAttribute.size(); b++){
+            splitValues[b] = (double) indexBestAttribute.get(b);
+        }
+        return bestSplitt;
+    }
+    private void constructBinaryCode(ArrayList list, String grayCode, int nBits, String Flag1, String Flag2, Boolean terminateFlag){
+        if(terminateFlag){
+            return;
+        }
+        String s1 = "";
+        String s2 = "";
+        if(nBits > 0){
+            s1 = grayCode.toString() + Flag1.toString();
+            s2 = grayCode.toString() + Flag2.toString();
+
+            constructBinaryCode(list, s1, nBits-1, Flag1, Flag2, false);
+            constructBinaryCode(list, s2, nBits-1, Flag2, Flag1, false);
+        }else{
+            if(grayCode.charAt(0) == '1'){
+                terminateFlag = true;
+                return;
+            }else{
+                Boolean onlyContainsZero = true;
+                for(int x = 0; x < grayCode.toString().length(); x++){
+                    if(grayCode.toString().charAt(x) == '1'){
+                        onlyContainsZero = false;
+                    }
+                }
+                if(!onlyContainsZero){
+                    list.add(grayCode.toString());
+                }
+            }
+        }
+
+    }
+    public ArrayList getBinaryPossibilitiesCode(int nBits){
+        String grayCode;
+        grayCode = "";
+        String Flag1 = "0";
+        String Flag2 = "1";
+        ArrayList<String> list = new ArrayList<String>();
+        constructBinaryCode(list, grayCode, nBits, Flag1, Flag2, false);
+        return list;
     }
 
     /**
