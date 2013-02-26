@@ -613,47 +613,52 @@ public class Grupp3Labb1
                     splitData[1].add(inst);
 
             }
-            //evaluate the instances with gainratio/ giniindex.
-            switch (m_SplitMethod) {
-                case 0: //GainRatio
-                    double gainRatio = 0.0;
-                    double infoGain = 0;
-                    try {
-                        infoGain = computeInfoGain(data, splitData);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    double splitInfo = computeSplitInfo(data, splitData);
-                    if (splitInfo != 0)
-                        gainRatio = infoGain / splitInfo;
-                    //compare
-                    if (gainRatio >= bestEvaluationValue) {
-                        bestEvaluationValue = gainRatio;
-                        bestSplitt = splitData;
-                        indexBestAttribute = (ArrayList<Integer>) attrIndexes.clone();
-                    }
-                    break;
-                case 1: //GiniIndex
-                    double gini = computeGiniIndex(data, splitData);
-                    if (gini <= bestEvaluationValue) {
-                        bestEvaluationValue = gini;
-                        bestSplitt = splitData;
-                        indexBestAttribute = (ArrayList<Integer>) attrIndexes.clone();
-                    }
-                    break;
+            if(checkMinLeafSize(splitData)){
+                //evaluate the instances with gainratio/ giniindex.
+                switch (m_SplitMethod) {
+                    case 0: //GainRatio
+                        double gainRatio = 0.0;
+                        double infoGain = 0;
+                        try {
+                            infoGain = computeInfoGain(data, splitData);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        double splitInfo = computeSplitInfo(data, splitData);
+                        if (splitInfo != 0)
+                            gainRatio = infoGain / splitInfo;
+                        //compare
+                        if (gainRatio >= bestEvaluationValue) {
+                            bestEvaluationValue = gainRatio;
+                            bestSplitt = splitData;
+                            indexBestAttribute = (ArrayList<Integer>) attrIndexes.clone();
+                        }
+                        break;
+                    case 1: //GiniIndex
+                        double gini = computeGiniIndex(data, splitData);
+                        if (gini <= bestEvaluationValue) {
+                            bestEvaluationValue = gini;
+                            bestSplitt = splitData;
+                            indexBestAttribute = (ArrayList<Integer>) attrIndexes.clone();
+                        }
+                        break;
+                }
             }
-        }
 
-        try {
-            splitValues = new double[indexBestAttribute.size()];
-        } catch(Exception e) {
-            e.printStackTrace();
         }
-        for(int b  = 0; b < indexBestAttribute.size(); b++){
-            splitValues[b] = (double) indexBestAttribute.get(b);
+        if(possibleSplits.isEmpty()){
+            return null;
+        }else{
+            try {
+                splitValues = new double[indexBestAttribute.size()];
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+            for(int b  = 0; b < indexBestAttribute.size(); b++){
+                splitValues[b] = (double) indexBestAttribute.get(b);
+            }
+            return bestSplitt;
         }
-
-        return bestSplitt;
     }
 
     private void constructBinaryCode(ArrayList<String> list, String grayCode, int nBits, String Flag1, String Flag2, Boolean terminateFlag){
