@@ -21,9 +21,7 @@
  */
 package weka.classifiers.trees;
 
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.Vector;
+import java.util.*;
 
 import weka.classifiers.AbstractClassifier;
 import weka.core.AdditionalMeasureProducer;
@@ -92,7 +90,6 @@ import weka.core.TechnicalInformation.Type;
 public class Grupp3Labb1
         extends AbstractClassifier
         implements TechnicalInformationHandler, OptionHandler, AdditionalMeasureProducer {//, Sourcable {
-    public static final int MAX_SPLIT = 7;
     public static final int MIN_SPLIT = 3;
 
     /** for serialization */
@@ -377,14 +374,6 @@ public class Grupp3Labb1
             return m_Successors[index].distributionForInstance(instance);
         }
 
-    }
-
-    /**
-     * Handle missing value
-     * @return the value to fill the missing
-     */
-    private double handleMissingValue() {
-        return m_MajorityClass;
     }
 
     /**
@@ -851,6 +840,14 @@ public class Grupp3Labb1
         return splitData;
     }
 
+    private int getSplitInterval(int N) {
+        int k = (int)Utils.log2(N);
+        if(k < 2)
+            k = 2;
+        printDebugMessage(String.format("%d", m_NumberOfSplits));
+        return k;
+    }
+
     /**
      * Returns an enumeration describing the available options.
      * <pre> -M &lt;minimum number of instances&gt;
@@ -1031,7 +1028,7 @@ public class Grupp3Labb1
             return "Grupp3Labb1: No model built yet.";
 
         return String.format("Grupp3Labb1\n------------------\n%s\n\nSize of the tree: %d\n\nNumber of leaves: %d",
-                new Object[]{toString(0), (int)measureTreeSize(), (int)measureNumLeaves()});
+                toString(0), (int)measureTreeSize(), (int)measureNumLeaves());
     }
 
     /**
