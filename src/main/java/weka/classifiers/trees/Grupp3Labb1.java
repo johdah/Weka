@@ -751,6 +751,10 @@ public class Grupp3Labb1
             }
         }
 
+        if(permutations.isEmpty()) {
+            return null;
+        }
+
         // If only one permutation
         if(permutations.size() == 1) {
             splitValues[0] = condList.get(0);
