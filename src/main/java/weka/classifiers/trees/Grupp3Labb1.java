@@ -416,19 +416,21 @@ public class Grupp3Labb1
 
     /**
      * @param data the data for which gini index is to be computed
-     * @param att the attribute
+     * @param splitData the instances
      * @return giniIndex
      */
     private double computeGiniIndex(Instances data, Instances[] splitData){
         double gini = computeNode(data);
 
-        for (Instances aSplitData : splitData) {
+        if(splitData == null) return gini;
 
+        for (Instances aSplitData : splitData) {
             gini -= ((double) aSplitData.size() / (double) data.size()) * computeNode(aSplitData);
         }
 
         return gini;
     }
+
     private double computeNode(Instances data){
         double nodeResult = 1.0;
 
@@ -447,6 +449,7 @@ public class Grupp3Labb1
             double p = aClassCount / (double) data.numInstances();
             nodeResult = nodeResult - (p * p);
         }
+
         return nodeResult;
     }
     /**
@@ -580,11 +583,10 @@ public class Grupp3Labb1
         }
 
         ArrayList<String> possibleSplits = getBinaryPossibilitiesCode(att.numValues());
-        for(int i = 0; i < possibleSplits.size(); i++){
-            String s = possibleSplits.get(i);
+        for (String s : possibleSplits) {
             ArrayList<Integer> attrIndexes = new ArrayList<Integer>();
-            for(int y = 0; y < s.length(); y++){
-                if(s.charAt(y) == '0'){
+            for (int y = 0; y < s.length(); y++) {
+                if (s.charAt(y) == '0') {
                     attrIndexes.add(y);
                 }
             }
@@ -616,24 +618,24 @@ public class Grupp3Labb1
                     try {
                         infoGain = computeInfoGain(data, splitData);
                     } catch (Exception e) {
-                        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                        e.printStackTrace();
                     }
                     double splitInfo = computeSplitInfo(data, splitData);
-                    if(splitInfo != 0)
+                    if (splitInfo != 0)
                         gainRatio = infoGain / splitInfo;
                     //compare
-                    if(gainRatio >= bestEvaluationValue){
+                    if (gainRatio >= bestEvaluationValue) {
                         bestEvaluationValue = gainRatio;
                         bestSplitt = splitData;
-                        indexBestAttribute = attrIndexes;
+                        indexBestAttribute = (ArrayList<Integer>) attrIndexes.clone();
                     }
                     break;
                 case 1: //GiniIndex
                     double gini = computeGiniIndex(data, splitData);
-                    if(gini <= bestEvaluationValue){
+                    if (gini <= bestEvaluationValue) {
                         bestEvaluationValue = gini;
                         bestSplitt = splitData;
-                        indexBestAttribute = (ArrayList) attrIndexes.clone();
+                        indexBestAttribute = (ArrayList<Integer>) attrIndexes.clone();
 
                     }
                     break;
@@ -644,39 +646,38 @@ public class Grupp3Labb1
         for(int b  = 0; b < indexBestAttribute.size(); b++){
             splitValues[b] = (double) indexBestAttribute.get(b);
         }
+
         return bestSplitt;
     }
-    private void constructBinaryCode(ArrayList list, String grayCode, int nBits, String Flag1, String Flag2, Boolean terminateFlag){
-        if(terminateFlag){
+
+    private void constructBinaryCode(ArrayList<String> list, String grayCode, int nBits, String Flag1, String Flag2, Boolean terminateFlag){
+        if(terminateFlag)
             return;
-        }
-        String s1 = "";
-        String s2 = "";
+
+        String s1;
+        String s2;
         if(nBits > 0){
-            s1 = grayCode.toString() + Flag1.toString();
-            s2 = grayCode.toString() + Flag2.toString();
+            s1 = grayCode + Flag1;
+            s2 = grayCode + Flag2;
 
             constructBinaryCode(list, s1, nBits-1, Flag1, Flag2, false);
             constructBinaryCode(list, s2, nBits-1, Flag2, Flag1, false);
         }else{
-            if(grayCode.charAt(0) == '1'){
-                terminateFlag = true;
-                return;
-            }else{
+            if (grayCode.charAt(0) != '1') {
                 Boolean onlyContainsZero = true;
-                for(int x = 0; x < grayCode.toString().length(); x++){
-                    if(grayCode.toString().charAt(x) == '1'){
+                for(int x = 0; x < grayCode.length(); x++){
+                    if(grayCode.charAt(x) == '1'){
                         onlyContainsZero = false;
                     }
                 }
                 if(!onlyContainsZero){
-                    list.add(grayCode.toString());
+                    list.add(grayCode);
                 }
             }
         }
-
     }
-    public ArrayList getBinaryPossibilitiesCode(int nBits){
+
+    public ArrayList<String> getBinaryPossibilitiesCode(int nBits){
         String grayCode;
         grayCode = "";
         String Flag1 = "0";
@@ -730,7 +731,6 @@ public class Grupp3Labb1
             instEnum = data.enumerateInstances();
             while(instEnum.hasMoreElements()) {
                 Instance inst = (Instance) instEnum.nextElement();
-
 
                 Double value2 = inst.value(att);
                 if(value2 <= value)
