@@ -1123,8 +1123,8 @@ public class Grupp3Labb1
         while(instances.hasMoreElements()) {
             Instance inst = (Instance) instances.nextElement();
             sum++;
-            //printDebugMessage("\nInstances ca: "+ inst.value(inst.classAttribute()));
-            //printDebugMessage("Correct ca: "+ m_ClassValue);
+            printDebugMessage("\nInstances ca: "+ inst.value(inst.classAttribute()));
+            printDebugMessage("Correct ca: "+ m_ClassValue);
 
             if(inst.value(inst.classAttribute()) != m_ClassValue)
                 error++;
@@ -1137,12 +1137,6 @@ public class Grupp3Labb1
             info = " (" + sum + "/" + error + ")";
         text.append(info);
 
-        /*text.append(((Instances)data).classAttribute().
-            value(m_distribution.maxClass(index)));
-        text.append(" ("+Utils.roundDouble(m_distribution.perBag(index),2));
-        if (Utils.gr(m_distribution.numIncorrect(index),0))
-          text.append("/"+Utils.roundDouble(m_distribution.numIncorrect(index),2));
-        text.append(")");*/
         return text.toString();
     }
 
