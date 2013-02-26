@@ -310,21 +310,39 @@ public class Grupp3Labb1
      */
     public double classifyInstance(Instance instance)
             throws NoSupportForMissingValuesException {
-        if (instance.hasMissingValue()){
-            //instance.setValue(m_Attribute, instance.dataset().meanOrMode(m_Attribute));
-            return instance.dataset().meanOrMode(m_Attribute.index());
-        }
+        int index = 0;
 
         if (m_Attribute == null){
             return m_ClassValue;
+        } else {
+            if(instance.isMissing(m_Attribute)){
+                instance.setValue(m_Attribute, instance.dataset().meanOrMode(m_Attribute.index()));
+            }
+
+            if(m_Attribute.isNumeric()) {
+                for(int i = 0; i < splitValues.length; i++){
+                    if(instance.value(m_Attribute) <= splitValues[i]){
+                        index = i;
+                        break;
+                    }
+                }
+            } else if(m_Attribute.isNominal()){
+                if(m_UseBinarySplits) {
+                    if(instance.value(m_Attribute) == splitValues[0])
+                        index = 0;
+                    else
+                        index = 1;
+                } else {
+                    index = (int) instance.value(m_Attribute);
+                }
+            }
         }
 
-        // TODO: Bad for binary
         try{
-            return m_Successors[(int) instance.value(m_Attribute)].classifyInstance(instance);
+            return m_Successors[index].classifyInstance(instance);
         } catch (Exception e){
             printDebugMessage("nullPointerException");
-            return m_Successors[(int) instance.value(m_Attribute)].classifyInstance(instance);
+            return m_Successors[index].classifyInstance(instance);
         }
     }
 
