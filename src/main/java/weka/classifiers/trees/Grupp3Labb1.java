@@ -573,7 +573,7 @@ public class Grupp3Labb1
     private Instances[] binarySplitDataNominal(Instances data, Attribute att) {
         //Best splitt is saved here.
         Instances[] bestSplitt = null;
-        ArrayList<Integer> indexBestAttribute = null;
+        List<Integer> indexBestAttribute = Collections.EMPTY_LIST;
         double bestEvaluationValue;
         if(m_SplitMethod == 0){
             bestEvaluationValue = 0.0;
@@ -595,6 +595,9 @@ public class Grupp3Labb1
             for (int a = 0; a < splitData.length; a++) {
                 splitData[a] = data.stringFreeStructure();
             }
+
+            if(data == null)
+                throw new IllegalStateException();
             for(Instance inst : data){
                 // If instance has the same value as splitValue, put in the first bucket
                 Boolean isAttribValue = false;
@@ -636,13 +639,16 @@ public class Grupp3Labb1
                         bestEvaluationValue = gini;
                         bestSplitt = splitData;
                         indexBestAttribute = (ArrayList<Integer>) attrIndexes.clone();
-
                     }
                     break;
             }
         }
 
-        splitValues = new double[indexBestAttribute.size()];
+        try {
+            splitValues = new double[indexBestAttribute.size()];
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
         for(int b  = 0; b < indexBestAttribute.size(); b++){
             splitValues[b] = (double) indexBestAttribute.get(b);
         }
