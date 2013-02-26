@@ -608,17 +608,10 @@ public class Grupp3Labb1
                     splitData[1].add(inst);
 
             }
-
             //evaluate the instances with gainratio/ giniindex.
-
-            if (bestSplitt == null){
-                bestSplitt = splitData;
-            }
-
             switch (m_SplitMethod) {
                 case 0: //GainRatio
                     double gainRatio = 0.0;
-
                     double infoGain = 0;
                     try {
                         infoGain = computeInfoGain(data, splitData);
@@ -632,8 +625,9 @@ public class Grupp3Labb1
                     if(gainRatio >= bestEvaluationValue){
                         bestEvaluationValue = gainRatio;
                         bestSplitt = splitData;
-                        indexBestAttribute = (ArrayList) attrIndexes.clone();
+                        indexBestAttribute = attrIndexes;
                     }
+                    break;
                 case 1: //GiniIndex
                     double gini = computeGiniIndex(data, splitData);
                     if(gini <= bestEvaluationValue){
@@ -642,6 +636,7 @@ public class Grupp3Labb1
                         indexBestAttribute = (ArrayList) attrIndexes.clone();
 
                     }
+                    break;
             }
         }
 
