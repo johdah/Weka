@@ -592,7 +592,7 @@ public class Grupp3Labb1
             bestEvaluationValue = 0.0;
         }
         else{
-            bestEvaluationValue = Double.MAX_VALUE;
+            bestEvaluationValue = Double.MIN_VALUE;
         }
 
         ArrayList<String> possibleSplits = getBinaryPossibilitiesCode(att.numValues());
@@ -649,7 +649,7 @@ public class Grupp3Labb1
                         break;
                     case 1: //GiniIndex
                         double gini = computeGiniIndex(data, splitData);
-                        if (gini <= bestEvaluationValue) {
+                        if (gini >= bestEvaluationValue) {
                             bestEvaluationValue = gini;
                             bestSplitt = splitData;
                             indexBestAttribute = (ArrayList<Integer>) attrIndexes.clone();
@@ -803,7 +803,7 @@ public class Grupp3Labb1
         // Get best split based on splitmethod
         if(m_SplitMethod == 1) {
             splitValues[0] = condList.get(Utils.minIndex(values));
-            return permutations.get(Utils.minIndex(values));
+            return permutations.get(Utils.maxIndex(values));
         }
         else {
             splitValues[0] = condList.get(Utils.maxIndex(values));
